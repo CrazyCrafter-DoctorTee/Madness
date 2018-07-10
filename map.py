@@ -1,11 +1,11 @@
-import gameutils
+from gameutils import *
 
-class GameMap:
+class Map:
     def __init__(self, filename, images):
         self.filename = filename
         self.images = images
         self.generate_template()
-
+        
     def generate_template(self):
         lines = []
         self.mapTiles = []
@@ -20,7 +20,7 @@ class GameMap:
         print_row, print_col = 0, 0
         for row in self.mapTiles:
             for col in row:
-                gameutils.load_image(screen, self.images[col], print_row, print_col)
+                load_image(screen, images[col], print_row, print_col)
                 print_col += 1
             print_col = 0
             print_row += 1
