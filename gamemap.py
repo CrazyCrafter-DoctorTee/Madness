@@ -1,26 +1,27 @@
-import gameutils
+def load_image(screen, image, row, col, scale=True):
+    if scale:
+        screen.blit(image, (col * 32, row * 32))
+    else:
+        screen.blit(image, (col, row)) 
 
 class GameMap:
-    def __init__(self, filename, images):
+    def __init__(self, filename, images, screenDims=None):
         self.filename = filename
         self.images = images
+        self.screenDims = screenDims
         self.generate_template()
-
+        
     def generate_template(self):
         lines = []
-        self.mapTiles = []
+        self.tiles = []
         with open(self.filename, 'r') as f:
            for line in f:
                lines.append(line)
         self.dims = tuple(int(d) for d in lines[0].split())
         for i in range(1, self.dims[0]+1):
-            self.mapTiles.append(lines[i].split())
+            self.tiles.append(lines[i].split())
 
-    def draw(self, screen):
-        print_row, print_col = 0, 0
-        for row in self.mapTiles:
-            for col in row:
-                gameutils.load_image(screen, self.images[col], print_row, print_col)
-                print_col += 1
-            print_col = 0
-            print_row += 1
+    def draw(self, screen, sRow, sCol, nRows, nCols):
+        for i in range(nRows):
+            for j in range(nCols):
+                load_image(screen, self.images[self.tiles[sRow+i][sCol+j]], i, j)

@@ -23,11 +23,10 @@ class GameManager:
         config = configparser.ConfigParser()
         config.read('assets/game.cfg')
         for key in config['images']:
-            images[key] = pygame.image.load(config['images'][key])
+            self.images[key] = pygame.image.load(config['images'][key])
 
         for key in config['maps']:
-            mapname = config['maps'][key]
-            maps[key] = gamemap.GameMap(mapname, images)
+            self.maps[key] = gamemap.GameMap(config['maps'][key], self.images)
 
     def next_frame(self):
         self.process_input()
