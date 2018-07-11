@@ -15,19 +15,19 @@ class GameManager:
         self.mapDims = (1280, 704)
         self.player = player.Player(self.images['player'], self.mapDims[0], self.mapDims[1])
         self.enemy = enemy.Enemy(self.images['enemy'], self.mapDims[0], self.mapDims[1])
-        
-    def read_files(self):    
+
+    def read_files(self):
         self.images = {}
         self.maps = {}
         self.screen = pygame.display.set_mode((1280, 704))
         config = configparser.ConfigParser()
-        config.read('game.cfg')
+        config.read('assets/game.cfg')
         for key in config['images']:
-            if key != 'map': # TODO: get rid of this condition
-                self.images[key] = pygame.image.load(config['images'][key])           
-        print(self.images)
-        self.maps['start'] = gamemap.GameMap(config['DEFAULT']['map'], self.images)
-        
+            self.images[key] = pygame.image.load(config['images'][key])
+
+        for key in config['maps']:
+            self.maps[key] = gamemap.GameMap(config['maps'][key], self.images)
+
     def next_frame(self):
         self.process_input()
         if self.enemyLastMove // 1 != time.time() // 1:

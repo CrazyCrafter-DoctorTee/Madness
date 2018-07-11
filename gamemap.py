@@ -2,7 +2,7 @@ def load_image(screen, image, row, col, scale=True):
     if scale:
         screen.blit(image, (col * 32, row * 32))
     else:
-        screen.blit(image, (col, row)) 
+        screen.blit(image, (col, row))
 
 class GameMap:
     def __init__(self, filename, images, screenDims=None):
@@ -10,7 +10,7 @@ class GameMap:
         self.images = images
         self.screenDims = screenDims
         self.generate_template()
-        
+
     def generate_template(self):
         lines = []
         self.tiles = []

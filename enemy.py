@@ -9,7 +9,7 @@ class Enemy:
         self.maxCol = maxCol
         self.row = random.randrange(1,15)
         self.col = random.randrange(1,15)
-        
+
     def move(self):
         possibleMoves = []
         if self.row > 0:
@@ -29,6 +29,6 @@ class Enemy:
             self.col -= 1
         if move == 'r':
             self.col += 1
-            
+
     def draw(self, screen):
         load_image(screen, self.image, self.row, self.col)
