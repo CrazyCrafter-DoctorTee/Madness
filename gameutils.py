@@ -9,7 +9,7 @@ def init_madness():
     pygame.init()
     screen = pygame.display.set_mode((1280, 704))
     config = configparser.ConfigParser()
-    config.read('game.cfg')
+    config.read('assets/game.cfg')
     for key in config['images']:
         print('Image:', key)
         images[key] = pygame.image.load(config['images'][key])
