@@ -25,7 +25,6 @@ class GameManager:
         #initialize graphics settings first
         for key in config['graphics']:
             self.graphics[key] = [int(x) for x in config['graphics'][key].split(',')]
-        print(self.graphics['screendims'])
         self.screen = pygame.display.set_mode(self.graphics['screendims'])
         #now we can do the rest of the config reading
         for key in config['images']:

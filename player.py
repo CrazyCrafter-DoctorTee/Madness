@@ -19,7 +19,6 @@ class Player:
             self.y += self.map.get_movement(self.x, self.y, 'd')
         elif key == pygame.K_UP:
             self.y +=  self.map.get_movement(self.x, self.y, 'u')
-        print(self.x, self.y)
 
     def draw(self, screen, offset):
         x, y = self.x-offset[0], self.y-offset[1]
