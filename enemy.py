@@ -1,34 +1,31 @@
 import random
+import time
 
-from gameutils import *
+import gameutils
 
 class Enemy:
-    def __init__(self, image, maxRow, maxCol):
+    def __init__(self, image, gameMap, startCords):
         self.image = image
-        self.maxRow = maxRow
-        self.maxCol = maxCol
-        self.row = random.randrange(1,15)
-        self.col = random.randrange(1,15)
+        self.map = gameMap
+        self.x = startCords[0]
+        self.y = startCords[1]
+        self.lastMove = time.time()
 
     def move(self):
-        possibleMoves = []
-        if self.row > 0:
-            possibleMoves.append('u')
-        if self.row < self.maxRow - 1:
-            possibleMoves.append('d')
-        if self.col > 0:
-            possibleMoves.append('l')
-        if self.col < self.maxCol - 1:
-            possibleMoves.append('r')
-        move = random.choice(possibleMoves)
-        if move == 'u':
-            self.row -= 1
-        if move == 'd':
-            self.row += 1
-        if move == 'l':
-            self.col -= 1
-        if move == 'r':
-            self.col += 1
+        if time.time() > self.lastMove + 0.6:
+            possibleMoves = ['l', 'r', 'u', 'd']
+            for i in range(16): # 1% when one possible move
+                choice = random.choice(possibleMoves)
+                dist = self.map.get_movement(self.x, self.y, choice)
+                if dist != 0:
+                    if  choice == 'l' or choice == 'r':
+                        self.x += dist
+                    elif choice == 'u' or choice == 'd':
+                        self.y += dist
+                    break
+            self.lastMove = time.time()
 
-    def draw(self, screen):
-        load_image(screen, self.image, self.row, self.col)
+
+    def draw(self, screen, offset):
+        x, y = self.x-offset[0], self.y-offset[1]
+        gameutils.load_image(screen, self.image, x, y)

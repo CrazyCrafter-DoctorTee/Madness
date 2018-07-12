@@ -1,24 +1,26 @@
 import pygame
 
-from gameutils import *
+import gamemap
+import gameutils
 
 class Player:
-    def __init__(self, image, maxRow, maxCol):
+    def __init__(self, image, gameMap, x=0, y=0):
         self.image = image
-        self.maxRow = maxRow
-        self.maxCol = maxCol
-        self.row = 0
-        self.col = 0
+        self.map = gameMap
+        self.x = x
+        self.y = y
 
     def move(self, key):
         if key == pygame.K_LEFT:
-            self.col -= 1 if self.col != 0 else 0
-        if key == pygame.K_RIGHT:
-            self.col += 1 if self.col < self.maxCol - 1 else 0
-        if key == pygame.K_DOWN:
-            self.row += 1 if self.row < self.maxRow - 1 else 0
-        if key == pygame.K_UP:
-            self.row -= 1 if self.row != 0 else 0
+            self.x += self.map.get_movement(self.x, self.y, 'l')
+        elif key == pygame.K_RIGHT:
+            self.x += self.map.get_movement(self.x, self.y, 'r')
+        elif key == pygame.K_DOWN:
+            self.y += self.map.get_movement(self.x, self.y, 'd')
+        elif key == pygame.K_UP:
+            self.y +=  self.map.get_movement(self.x, self.y, 'u')
+        print(self.x, self.y)
 
-    def draw(self, screen):
-        load_image(screen, self.image, self.row, self.col)
+    def draw(self, screen, offset):
+        x, y = self.x-offset[0], self.y-offset[1]
+        gameutils.load_image(screen, self.image, x, y)
