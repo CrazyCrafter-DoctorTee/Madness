@@ -1,6 +1,6 @@
-from math import ceil, floor
 import pygame
 
+import time
 import gameutils
 
 class GameMap:
@@ -32,10 +32,9 @@ class GameMap:
         return (x1, x2, y1, y2)
 
     def draw(self, screen, offset):
-        # Arrays start at 1?
         x1, x2, y1, y2 = self.get_tile_dims(offset)
-        startX = 0#(offset[0] // self.tileDims[0]) * self.tileDims[0]
-        startY = 0#(offset[1] // self.tileDims[1]) * self.tileDims[1]
+        startX = -(offset[0] % self.tileDims[0])
+        startY = -(offset[1] % self.tileDims[1])
         printX  = startX-self.tileDims[0] # minus to cancel for later plus
         for i in range(x1, x2):
             printX += self.tileDims[0]
