@@ -12,7 +12,7 @@ class GameManager:
         pygame.init()
         self.read_files()
         self.mapDims = (1280, 704)
-        self.player = player.Player(self.images['player'], self.maps['start'])
+        self.player = player.Player(self.images['player'], self.maps['start'], 20*32, 20*32)
         self.enemy = enemy.Enemy(self.images['enemy'], self.maps['start'], self.mapDims)
         self.camera = camera.Camera(self.player, self.maps['start'], self.graphics['screendims'])
 
