@@ -35,6 +35,7 @@ class GameManager:
 
     def next_frame(self):
         self.process_input()
+        self.player.move()
         self.camera.find_offset()
         self.enemy.move()
         self.draw()
@@ -44,7 +45,9 @@ class GameManager:
             if event.type == pygame.QUIT:
                 pygame.display.quit()
             if event.type == pygame.KEYDOWN:
-                self.player.move(event.key)
+                self.player.key_down(event.key)
+            if event.type == pygame.KEYUP:
+                self.player.key_up(event.key)
 
     def draw(self):
         self.maps['start'].draw(self.screen, self.camera.offset)

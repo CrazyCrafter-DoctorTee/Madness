@@ -1,4 +1,3 @@
-from math import ceil, floor
 import pygame
 
 import gameutils
