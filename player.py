@@ -12,7 +12,7 @@ class Player:
         self.goalX, self.goalY = x, y # where the player is headed, can you come up with a better name?
         self.currMove = None
         self.lastMove = 0
-        self.speed = 5 # px/frame
+        self.speed = 20 # px/frame
 
     def key_down(self, key):
         self.currMove = key

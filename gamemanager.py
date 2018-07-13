@@ -9,10 +9,11 @@ import player
 
 class GameManager:
     def __init__(self):
+        self.active = True
         pygame.init()
         self.read_files()
         self.mapDims = (1280, 704)
-        self.player = player.Player(self.images['player'], self.maps['start'], 20*32, 20*32)
+        self.player = player.Player(self.images['player'], self.maps['start'], 0, 0)
         self.enemy = enemy.Enemy(self.images['enemy'], self.maps['start'], self.mapDims)
         self.camera = camera.Camera(self.player, self.maps['start'], self.graphics['screendims'])
 
@@ -43,7 +44,7 @@ class GameManager:
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.display.quit()
+                self.active = False
             if event.type == pygame.KEYDOWN:
                 self.player.key_down(event.key)
             if event.type == pygame.KEYUP:
@@ -54,3 +55,6 @@ class GameManager:
         self.player.draw(self.screen, self.camera.offset)
         self.enemy.draw(self.screen, self.camera.offset)
         pygame.display.flip()
+
+    def close(self):
+        pygame.display.quit()
