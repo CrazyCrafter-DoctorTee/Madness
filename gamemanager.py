@@ -6,15 +6,34 @@ import enemy
 import camera
 import player
 
-class GameManager:
+class GameManager(object):
     def __init__(self):
         pygame.init()
-        self.ioManager = iomanager.IOManager('asserts/game.cfg')
-        self.mapDims = (1280, 704)
-        self.screen = pygame.display.set_mode(self.graphics['screendims'])
-        self.player = player.Player(self.images['player'], self.maps['start'])
-        self.enemy = enemy.Enemy(self.images['enemy'], self.maps['start'], self.mapDims)
-        self.camera = camera.Camera(self.player, self.maps['start'], self.graphics['screendims'])
+        self.ioManager = iomanager.IOManager('assets/config.cfg')
+        self.screenDims = self.ioManager.get_data('game', 'graphics', 'screendims')
+        print(self.screenDims)
+        self.screen = pygame.display.set_mode(self.screenDims)
+        self.init()
+        self.player = player.Player(self.images['character']['player'], self.maps['start'])
+        self.enemy = enemy.Enemy(self.images['character']['enemy'], self.maps['start'], self.screenDims)
+        self.camera = camera.Camera(self.player, self.maps['start'], self.screenDims)
+
+    def init(self):
+        self.images = self.create_images(self.ioManager.get_data('images'))
+        maps = self.ioManager.get_data('maps')
+        self.maps = {}
+        for name, attribs in maps.items():
+            self.maps[name] = gamemap.GameMap(attribs['filename'],
+                     self.images['map'], self.screen, attribs['tiledims'])
+        
+    def create_images(self, imageFiles):
+        if type(imageFiles) == dict:
+            images = {}
+            for sec, value in imageFiles.items():
+                images[sec] = self.create_images(value)
+            return images
+        else: 
+            return pygame.image.load(imageFiles) # should only be one file
 
     def next_frame(self):
         self.process_input()
