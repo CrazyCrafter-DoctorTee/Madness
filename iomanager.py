@@ -6,21 +6,26 @@ class IOManager(object):
     def __init__(self, configFile):
         self.masterConfig = configparser.ConfigParser()
         self.masterConfig.read(configFile)
-        self.generalParams = self.parse_file(self.masterConfig)
-        self.otherParams ={}
-        if 'configs' in self.generalParams:
-            for c in self.generalParams['configs']:
-                parser = configparser.ConfigParser()
-                parser.read(c)
-                self.otherParams[c] = self.parse_file(parser)
+        self.data = self.parse_file(self.masterConfig)
         
     def parse_file(self, config):
         data = {}
-        for s in config.sections[]:
+        for s in config.sections():
             data[s] = {}
-            for key, value in config[s].items:
+            for key, value in config[s].items():
                 data[s][key] = value
+        if 'config' in data.items():
+           for name, filename in data['config']:
+               newConfig = configparser.ConfigParser()
+               newConfig.read(filename)
+               data[name] = self.parse_file(newConfig)
         return data
+    
+    def get_data(self, *sections):
+        subData = self.data
+        for s in sections:
+            subData = subData[s]
+        return dict(subData)
     
     def read_files(self):
         self.images = {}
