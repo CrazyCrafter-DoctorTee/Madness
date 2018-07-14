@@ -8,10 +8,10 @@ import player
 
 class GameManager(object):
     def __init__(self):
+        self.active = True
         pygame.init()
         self.ioManager = iomanager.IOManager('assets/config.cfg')
         self.screenDims = self.ioManager.get_data('game', 'graphics', 'screendims')
-        print(self.screenDims)
         self.screen = pygame.display.set_mode(self.screenDims)
         self.init()
         self.player = player.Player(self.images['character']['player'], self.maps['start'])
@@ -37,6 +37,7 @@ class GameManager(object):
 
     def next_frame(self):
         self.process_input()
+        self.player.move()
         self.camera.find_offset()
         self.enemy.move()
         self.draw()
@@ -44,12 +45,17 @@ class GameManager(object):
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.display.quit()
+                self.active = False
             if event.type == pygame.KEYDOWN:
-                self.player.move(event.key)
+                self.player.key_down(event.key)
+            if event.type == pygame.KEYUP:
+                self.player.key_up(event.key)
 
     def draw(self):
         self.maps['start'].draw(self.screen, self.camera.offset)
         self.player.draw(self.screen, self.camera.offset)
         self.enemy.draw(self.screen, self.camera.offset)
         pygame.display.flip()
+
+    def close(self):
+        pygame.display.quit()

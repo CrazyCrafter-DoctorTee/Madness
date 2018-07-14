@@ -6,7 +6,6 @@ class IOManager(object):
         self.masterConfig = configparser.ConfigParser()
         self.masterConfig.read(configFile)
         self.data = self.parse_file(self.masterConfig)
-        print(self.data)
         
     def parse_file(self, config):
         data = {}
