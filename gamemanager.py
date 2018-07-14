@@ -1,7 +1,6 @@
 import pygame
-import configparser
-import time
 
+import iomanager
 import gamemap
 import enemy
 import camera
@@ -10,28 +9,12 @@ import player
 class GameManager:
     def __init__(self):
         pygame.init()
-        self.read_files()
+        self.ioManager = iomanager.IOManager('asserts/game.cfg')
         self.mapDims = (1280, 704)
+        self.screen = pygame.display.set_mode(self.graphics['screendims'])
         self.player = player.Player(self.images['player'], self.maps['start'])
         self.enemy = enemy.Enemy(self.images['enemy'], self.maps['start'], self.mapDims)
         self.camera = camera.Camera(self.player, self.maps['start'], self.graphics['screendims'])
-
-    def read_files(self):
-        self.images = {}
-        self.maps = {}
-        self.graphics = {}
-        config = configparser.ConfigParser()
-        config.read('assets/game.cfg')
-        #initialize graphics settings first
-        for key in config['graphics']:
-            self.graphics[key] = [int(x) for x in config['graphics'][key].split(',')]
-        self.screen = pygame.display.set_mode(self.graphics['screendims'])
-        #now we can do the rest of the config reading
-        for key in config['images']:
-            self.images[key] = pygame.image.load(config['images'][key])
-        for key in config['maps']:
-            self.maps[key] = gamemap.GameMap(config['maps'][key], self.images, self.screen, self.graphics['tiledims'])
-
 
     def next_frame(self):
         self.process_input()
