@@ -49,10 +49,10 @@ class MapState(gamestate.GameState):
         self.enemy.move()
 
     def draw(self):
-        playerCords = self.player.dims
-        offSet = self.camera.find_offset(playerCords)
-        tiles, startCords, tileSize = self.currMap.get_drawing_info((1280, 704), offSet)
+        playerCords = self.player.position
+        self.camera.generate_offset(playerCords)
+        tiles, startCords, tileSize = self.currMap.get_drawing_info(self.screenDims, self.camera.topLeft)
         self.draw_map(tiles, startCords, tileSize)
-        self.load_image(self.images['character']['enemy'], self.enemy.cords)
-        self.load_image(self.images['character']['player'], playerCords)
+        self.load_image(self.images['character']['enemy'], self.camera.get_position_in_window(self.enemy.cords))
+        self.load_image(self.images['character']['player'], self.camera.get_position_in_window(self.player.position))
         pygame.display.flip()

@@ -1,12 +1,10 @@
 class Camera(object):
-    
+
     def __init__(self, screenDims, maxDims):
         self.screenDims = screenDims
         self.maxDims = maxDims
 
-    def find_offset(self, playerCords):
-        print(self.screenDims)
-        preCords = self.screenDims
+    def generate_offset(self, playerCords):
         playX, playY = playerCords
         if playX + self.screenDims[0]//2 > self.maxDims[0]:
             x = self.maxDims[0] - self.screenDims[0]
@@ -16,5 +14,8 @@ class Camera(object):
             y = self.maxDims[1] - self.screenDims[1]
         else:
             y = max(0, playY-self.screenDims[1]//2)
-        assert preCords == self.screenDims
-        return (x, y)
+        self.topLeft = (x, y)
+
+    def get_position_in_window(self, objectCords):
+        objX, objY = objectCords
+        return (objectCords[0] - self.topLeft[0], objectCords[1] - self.topLeft[1])
