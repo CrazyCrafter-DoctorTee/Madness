@@ -1,15 +1,10 @@
 import pygame
-import time
 
-import gamemap
-import gameutils
-
-class Player:
-    def __init__(self, image, gameMap, x=0, y=0):
-        self.image = image
+class Player(object):
+    def __init__(self, gameMap, startDims=(0,0)):
         self.map = gameMap
-        self.x, self.y = x, y
-        self.goalX, self.goalY = x, y # where the player is headed, can you come up with a better name?
+        self.dims = startDims
+        self.goalDims = startDims # where the player is headed, can you come up with a better name?
         self.currMove = None
         self.lastMove = 0
         self.speed = 20 # px/frame
@@ -22,27 +17,23 @@ class Player:
             self.currMove = None
         
     def move(self):
-        if self.currMove and self.goalX == self.x and self.goalY == self.y:
+        if self.currMove and self.goalDims[0] == self.dims[0] and self.goalDims[1] == self.dims[1]:
             self.get_movement()
-        if self.x < self.goalX:
-            self.x += min(self.speed, self.goalX-self.x)
-        elif self.x > self.goalX:
-            self.x += max(-self.speed, self.goalX-self.x)
-        elif self.y < self.goalY:
-            self.y += min(self.speed, self.goalY-self.y)
-        elif self.y > self.goalY:
-            self.y += max(-self.speed, self.goalY-self.y)
+        if self.dims[0] < self.goalDims[0]:
+            self.dims[0] += min(self.speed, self.goalDims[0]-self.dims[0])
+        elif self.dims[0] > self.goalDims[0]:
+            self.dims[0] += max(-self.speed, self.goalDims[0]-self.dims[0])
+        elif self.dims[1] < self.goalDims[1]:
+            self.dims[1] += min(self.speed, self.goalDims[1]-self.dims[1])
+        elif self.dims[1] > self.goalDims[1]:
+            self.dims[1] += max(-self.speed, self.goalDims[1]-self.dims[1])
   
     def get_movement(self):
         if self.currMove == pygame.K_LEFT:
-            self.goalX += self.map.get_movement(self.x, self.y, 'l')
+            self.goalDims[0] += self.map.get_movement(self.dims, 'l')
         elif self.currMove == pygame.K_RIGHT:
-            self.goalX += self.map.get_movement(self.x, self.y, 'r')
+            self.goalDims[0] += self.map.get_movement(self.dims, 'r')
         elif self.currMove == pygame.K_DOWN:
-            self.goalY += self.map.get_movement(self.x, self.y, 'd')
+            self.goalDims[1] += self.map.get_movement(self.dims, 'd')
         elif self.currMove == pygame.K_UP:
-            self.goalY +=  self.map.get_movement(self.x, self.y, 'u')
-
-    def draw(self, screen, offset):
-        x, y = self.x-offset[0], self.y-offset[1]
-        gameutils.load_image(screen, self.image, x, y)
+            self.goalDims[1] +=  self.map.get_movement(self.dims, 'u')
