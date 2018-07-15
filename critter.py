@@ -1,4 +1,4 @@
-import ioman
+import iomanager
 
 class Critter:
     def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None):
