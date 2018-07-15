@@ -1,68 +1,56 @@
-import pygame
-
-import time
-import gameutils
-
-class GameMap:
-    def __init__(self, filename, images, screen, tileDims=(32, 32)):
-        self.filename = filename
-        self.images = images
-        self.screen = screen
-        self.screenDims = pygame.display.get_surface().get_size()
+class GameMap(object):
+    def __init__(self, filename, tileDims=(32, 32)):
         self.tileDims = tileDims
-        self.generate_template()
+        self.template = self.generate_template(filename)
 
-    def generate_template(self):
+    def generate_template(self, filename):
         lines = []
         self.tiles = []
-        with open(self.filename, 'r') as f:
+        with open(filename, 'r') as f:
            for line in f:
                lines.append(line)
         self.dims = tuple(int(d) for d in lines[0].split())
-        self.maxX = self.dims[0] * self.tileDims[0]-self.tileDims[0] # add one tile buffer
-        self.maxY = self.dims[1] * self.tileDims[1]-self.tileDims[1]
+        maxX = self.dims[0]*self.tileDims[0] - self.tileDims[0]
+        maxY = self.dims[1]*self.tileDims[1] - self.tileDims[1]
+        self.maxDims = (maxX, maxY)
         for i in range(1, self.dims[0]+1):
             self.tiles.append(lines[i].split())
 
-    def get_tile_dims(self, offset):
-        x1 = offset[0]//self.tileDims[0]
-        x2 = offset[0]//self.tileDims[0] + self.screenDims[0]//self.tileDims[0] + 1
-        y1 = offset[1]//self.tileDims[1]
-        y2 = offset[1]//self.tileDims[1] + self.screenDims[1]//self.tileDims[1] + 1
+    def get_tile_dims(self, startX, startY, screenDims):
+        x1, y1 = startX//self.tileDims[0], startY//self.tileDims[1]
+        x2 = x1 + screenDims[0]//self.tileDims[0] + (1 if startX % self.tileDims[0] else 0)
+        y2 = y1 + screenDims[1]//self.tileDims[1] + (1 if startX % self.tileDims[1] else 0)
         return (x1, x2, y1, y2)
 
-    def draw(self, screen, offset):
-        x1, x2, y1, y2 = self.get_tile_dims(offset)
-        startX = -(offset[0] % self.tileDims[0])
-        startY = -(offset[1] % self.tileDims[1])
-        printX  = startX-self.tileDims[0] # minus to cancel for later plus
-        for i in range(x1, x2):
-            printX += self.tileDims[0]
-            printY = startY-self.tileDims[1]
-            for j in range(y1, y2):
-                printY += self.tileDims[1]
-                gameutils.load_image(self.screen, self.images[self.tiles[j][i]],
-                                     printX, printY)
+    def get_drawing_info(self, screenDims, startCords):
+        x1, x2, y1, y2 = self.get_tile_dims(startCords[0], startCords[1], screenDims)
+        offsetX = startCords[0] % self.tileDims[0]
+        offsetY = startCords[1] % self.tileDims[1]
+        mapTiles = []
+        for i in range(x1, x2+1):
+            mapTiles.append(self.tiles[i][y1:y2+1])
+        return mapTiles, (offsetX, offsetY), self.tileDims
 
-    def can_move(self, x, y):
+    def tile_speed(self, x, y):
         # TODO: will determine if player can walk on tile
         return 1
 
-    def get_movement(self, x, y, move):
-        tileX, tileY = x//self.tileDims[0], y//self.tileDims[1]
+    def get_movement(self, cords, move): # TODO: can we clean this up?
+        tileX, tileY = cords[0]//self.tileDims[0], cords[1]//self.tileDims[1]
+        x, y = cords
         if move == 'l':
             if tileX <= 0:
                 return 0
-            return self.can_move(x-1, y) * -self.tileDims[0]
+            return self.tile_speed(x-1, y) * -self.tileDims[0]
         elif move == 'r':
-            if tileX >= (self.maxX-1)//self.tileDims[0]:
+            if tileX >= (self.maxDims[0]-1)//self.tileDims[0]:
                 return 0
-            return self.can_move(x+1, y) * self.tileDims[0]
+            return self.tile_speed(x+1, y) * self.tileDims[0]
         elif move == 'u':
             if tileY <= 0:
                 return 0
-            return self.can_move(x, y-1) * -self.tileDims[1]
+            return self.tile_speed(x, y-1) * -self.tileDims[1]
         elif move == 'd':
-            if tileY >= (self.maxY-1)//self.tileDims[1]:
+            if tileY >= (self.maxDims[1]-1)//self.tileDims[1]:
                 return 0
-            return self.can_move(x-1, y+1) * self.tileDims[1]
+            return self.tile_speed(x-1, y+1) * self.tileDims[1]

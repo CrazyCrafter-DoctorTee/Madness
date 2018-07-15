@@ -32,8 +32,8 @@ class IOManager(object):
         else:
             return value
             
-    
     def get_data(self, *sections):
+        # TODO: right now, we don't need to parse floats. but will we ever?
         subData = self.data
         for s in sections:
             subData = subData[s]
