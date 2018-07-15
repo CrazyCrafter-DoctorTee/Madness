@@ -28,7 +28,7 @@ class Critter:
             self.currentmoves = currentmoves
 
     def defend(self, attack):
-        self.hp -= int(attack[0] / self.defense)
+        self.hp -= int(attack[0] / self.defense + 1)
         if(len(attack) > 1):
             print("handling status effects")
 
