@@ -1,15 +1,14 @@
-import IOManager
+import iomanager
 
 class Critter:
-    def __init__(self, name, iomanager, lvl=1, currentmoves=None, currenthp=None):
-        statsin = iomanager.get_data('critters', name, 'stats')
-        self.moves = iomanager.get_data('critters', name, 'moves')
+    def __init__(self, name, ioManager, lvl=1, currentmoves=None, currenthp=None):
+        statsin = ioManager.get_data('critters', name, 'stats')
+        self.moves = ioManager.get_data('critters', name, 'moves')
         self.iomanager = iomanager
-        self.def = statsin['def']
+        self.defense = statsin['def']
         self.hp = statsin['hp']
         self.spd = statsin['spd']
         self.atk = statsin['atk']
-        self.exp = exp
         self.lvl = lvl
         self.status = []
         if(currenthp == None or currenthp > self.hp):
@@ -20,7 +19,7 @@ class Critter:
             self.currentmoves = []
             i = self.lvl
             while len(self.currentmoves) < 4 and i > 0:
-                for j in range(len(bestmoves), 4):
+                for j in range(len(self.currentmoves), 4):
                     for key, value in self.moves.items():
                         if(value == i):
                             self.currentmoves.append(key)
@@ -29,6 +28,7 @@ class Critter:
             self.currentmoves = currentmoves
 
     def defend(self, attack):
+        pass
 
     def attack(self, move):
         if self.currenthp == 0:
