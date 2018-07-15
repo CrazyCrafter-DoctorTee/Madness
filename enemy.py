@@ -1,7 +1,7 @@
 import random
 import time
 
-class Enemy:
+class Enemy(object):
     def __init__(self, image, gameMap, startCords):
         self.image = image
         self.map = gameMap
