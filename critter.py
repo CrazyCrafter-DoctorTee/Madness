@@ -2,6 +2,7 @@ import iomanager
 import random
 
 class Critter:
+    #requires at minimum the critter tag and io manager, also takes a level, dict of moves and their pp, and current hit points
     def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None):
         self.ioman = ioman
         statsin = self.ioman.get_data('critters', name, 'stats')
@@ -13,22 +14,24 @@ class Critter:
         self.lvl = lvl
         self.conctr = 0
         self.slpctr = 0
-        self.para = False
+        self.recctr = 0
         self.status = []
         if(currenthp == None or currenthp > self.hp):
             self.currenthp = self.hp
         else:
             self.currenthp = currenthp
         if(currentmoves == None):
-            self.currentmoves = []
+            self.currentmoves = {}
             i = self.lvl
             while len(self.currentmoves) < 4 and i > 0:
                 for j in range(len(self.currentmoves), 4):
                     for key, value in self.moves.items():
                         if(value == i):
-                            self.currentmoves.append(key)
+                            self.currentmoves[key] = self.ioman.get_data('moves', key, 'pp')
                 i -= 1
         else:
+            if len(currentmoves) > 4:
+                currentmoves = dict(currentmoves.items()[:3])
             self.currentmoves = currentmoves
 
     #returns a tuple containing the damage taken, any added status effects, and any extra info
@@ -40,7 +43,6 @@ class Critter:
             dmgtaken = int(attack[0] / self.defense + 1)
             self.hp -= dmgtaken
         if(len(attack) > 1):
-            print("handling status effects")
             for i in range(0, len(attack[1]), 2):
                 if random.randint(0, 99) < attack[1][i + 1]:
                     self.status.append(attack[1][i])
@@ -53,11 +55,23 @@ class Critter:
         return (dmgtaken, addedstatus, extrainfo)
 
     #returns a tuple containing the damage to deal, status effects to apply, any changes in own status, and any extra info
+    #if the move is not in the dict of current moves returns 0 dmg
     def attack(self, move):
         movedict = self.ioman.get_data('moves', move)
         status = []
         addedstatus = []
         info = ''
+        damage = movedict['dmg'] * self.atk * ((2 + self.status.count('dmgup')) / (2 + self.status.count('dmgdn')))
+        #check to make sure attack can be executed:
+        if move not in self.currentmoves:
+            return (0, (), (), 'invalid')
+        if self.currentmoves[move] == 0:
+            return (0, (), (), 'nopp')
+        if self.status.count('recha') > 0:
+            return (0, (), (), 'recharging')
+        if self.status.count('para'):
+            if random.randint(0,3) == 0:
+                return (0, (), (), 'paralyzed')
         if self.status.count('fli') > 0:
             return (0, (), (), 'flinched')
         if self.status.count('frz') > 0:
@@ -67,14 +81,9 @@ class Critter:
             if random.randint(0,1) == 0:
                 self.defend((40 * self.atk), (), (), '')
                 return (0, (), (), 'confused')
-        if self.para:
-            return (0, (), (), 'paralyzed')
-        if 'selfstatus' in movedict:
-            for i in range(0, len(movedict['selfstatus']), 2):
-                if random.randint(0, 99) < movedict['selfstatus'][i + 1]:
-                    self.status.append(movedict['selfstatus'][i])
-                    addedstatus.append(movedict['selfstatus'][i])
-            self.crunch_status()
+        #decrement pp now
+        self.currentmoves[move] -= 1
+        #handle accuracy
         if 'acc' in movedict:
             if random.randint(0, 99) > movedict['acc']:
                 return (0, (), (), 'miss')
@@ -83,7 +92,17 @@ class Critter:
                 return (0, (), (), 'gen1miss')
         if 'status' in movedict:
             status.extend(movedict['status'])
-        return (movedict['dmg'] * self.atk, status, addedstatus, info)
+        #handle updates to own status
+        if 'selfstatus' in movedict:
+            for i in range(0, len(movedict['selfstatus']), 2):
+                if random.randint(0, 99) < movedict['selfstatus'][i + 1]:
+                    self.status.append(movedict['selfstatus'][i])
+                    addedstatus.append(movedict['selfstatus'][i])
+                    if movedict['selfstatus'][i] == 'recha':
+                        self.recctr = 2
+            self.crunch_status()
+        #actually deal with the attack
+        return (damage, status, addedstatus, info)
 
     #removes conflicting status effects
     def crunch_status(self):
@@ -112,10 +131,14 @@ class Critter:
             for i in range(-1 * atkct):
                 self.status.append('atkdn')
 
+    #removes statuses from the critter. Takes a tuple of keywords as input
+    def remove_status(self, statuses):
+        self.status = [stat for stat in self.status if stat not in statuses]
+
+    #update stats and deal with burn dmg and such at the end of turn
     def update_status(self):
         if len(self.status) > 0:
-            remslp = False
-            remcon = True
+            removestats = []
             if self.status.count('fli') > 0:
                 self.status = [stat for stat in self.status if stat != 'fli']
             for stat in self.status:
@@ -123,17 +146,15 @@ class Critter:
                     self.currenthp -= int(self.hp / 8)
                 elif stat == 'psn':
                     self.currenthp -= int(self.hp / 8)
-                elif stat == 'para':
-                    if random.randint(0,3) == 0:
-                        self.para = True
                 elif stat == 'con':
                     if self.conctr == 0:
-                        remcon = True
+                        removestats.append('con')
                 elif stat == 'slp':
                     self.slpctr -= 1
                     if self.slpctr == 0:
-                        remslp = True
-            if remslp:
-                self.status = [stat for stat in self.status if stat !- 'slp']
-            if remcon:
-                self.status = [stat for stat in self.status if stat !- 'con']
+                        removestats.append('slp')
+                elif stat == 'recha':
+                    self.recctr -= 1
+                    if self.recctr == 0:
+                        removestats.append('recha')
+            self.remove_status(removestats)
