@@ -43,7 +43,6 @@ class Critter:
                     addedstatus.append(attack[1][i])
         return (dmgtaken, addedstatus, extrainfo)
 
-
     def attack(self, move):
         movedict = self.ioman.get_data('moves', move)
         status = []

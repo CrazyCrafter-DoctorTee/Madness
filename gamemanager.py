@@ -18,13 +18,12 @@ class GameManager(object):
 
     def next_frame(self):
         state = self.gameStates[self.state].process_input()
-        print(state)
         self.gameStates[self.state].make_actions()
         self.gameStates[self.state].draw()
         if state != self.state:
             self.state = state
             if self.state == 'battle':
-                self.gameStates['battle'] = battlestate.BattleState(self.screen, self.fighter, None)
+                self.gameStates['battle'] = battlestate.BattleState(self.screen, self.ioManager, self.fighter)
 
     def draw(self):
         self.maps['start'].draw(self.screen, self.camera.offset)
