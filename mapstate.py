@@ -23,16 +23,17 @@ class MapState(gamestate.GameState):
         self.enemy = enemy.Enemy(self.images['character']['enemy'], self.maps['start'], [320, 320])
         self.camera = camera.Camera(self.screenDims, self.maps['start'].maxDims)
 
-
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return False
+                return None
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_b:
+                    return 'battle'
                 self.player.key_down(event.key)
             if event.type == pygame.KEYUP:
                 self.player.key_up(event.key)
-        return True
+        return 'map'
 
     def draw_map(self, tileList, startCords, tileSize):
         i, x = 0, startCords[0]

@@ -12,9 +12,9 @@ class GameState(object):
                 images[sec] = self.create_images(value)
             return images
         else: 
-            return pygame.image.load(imageFiles) # * should only be one file
+            return pygame.image.load(imageFiles) # *should only be one file
         
-    def process_input(self):
+    def process_input(self): # must return new gamestate
         raise NotImplementedError
         
     def make_actions(self):
