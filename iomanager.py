@@ -1,12 +1,12 @@
 import configparser
 
 class IOManager(object):
-    
+
     def __init__(self, configFile):
         self.masterConfig = configparser.ConfigParser()
         self.masterConfig.read(configFile)
         self.data = self.parse_file(self.masterConfig)
-        
+
     def parse_file(self, config):
         data = {}
         for s in config.sections():
@@ -31,7 +31,7 @@ class IOManager(object):
             return int(value)
         else:
             return value
-            
+
     def get_data(self, *sections):
         # TODO: right now, we don't need to parse floats. but will we ever?
         subData = self.data
