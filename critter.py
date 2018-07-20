@@ -3,15 +3,19 @@ import random
 
 class Critter:
     #requires at minimum the critter tag and io manager, also takes a level, dict of moves and their pp, and current hit points
-    def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None):
+    def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None, extraexp=0):
         self.ioman = ioman
+        self.name = name
         statsin = self.ioman.get_data('critters', name, 'stats')
         self.moves = self.ioman.get_data('critters', name, 'moves')
-        self.defense = statsin['def']
-        self.hp = statsin['hp']
-        self.spd = statsin['spd']
-        self.atk = statsin['atk']
         self.lvl = lvl
+        self.defense = int(statsin['def'] * (self.lvl / 50 + 1) / 3)
+        self.hp = int(statsin['hp'] * (self.lvl / 50 + 1) / 3)
+        self.spd = int(statsin['spd'] * (self.lvl / 50 + 1) / 3)
+        self.atk = int(statsin['atk'] * (self.lvl / 50 + 1) / 3)
+        self.exp = extraexp + self.lvl * self.lvl * self.lvl
+        if self.exp > 100 * 100 * 100:
+            self.exp = 100*100*100
         self.conctr = 0
         self.slpctr = 0
         self.recctr = 0
@@ -23,13 +27,22 @@ class Critter:
         if(currentmoves == None):
             self.currentmoves = {}
             i = self.lvl
-            while len(self.currentmoves) < 4 and i > 0:
-                for j in range(len(self.currentmoves), 4):
-                    for key, value in self.moves.items():
-                        if(value == i):
-                            self.currentmoves[key] = self.ioman.get_data('moves', key, 'pp')
-                i -= 1
+            j = 0
+            movenames = list(self.moves.keys())
+            needmoves = True
+            while needmoves:
+                if self.moves[movenames[j]] == i:
+                    self.currentmoves[movenames[j]] = self.ioman.get_data('moves', movenames[j], 'pp')
+                if len(self.currentmoves) == 4:
+                    needmoves = False
+                j += 1
+                if j == len(movenames):
+                    j = 0
+                    i -= 1
+                if i < 0:
+                    needmoves = False
         else:
+            #picks 4 moves from the given ones, no gurantees on which ones
             if len(currentmoves) > 4:
                 currentmoves = dict(currentmoves.items()[:3])
             self.currentmoves = currentmoves
@@ -53,6 +66,33 @@ class Critter:
                         self.conctr = random.randint(1,4)
             self.crunch_status()
         return (dmgtaken, addedstatus, extrainfo)
+
+    #sets the level to a new value and updates stats accordingly
+    def setlvl(self, newlvl):
+        if newlvl > 0 and newlvl < 101:
+            self.lvl += 1
+            statsin = self.ioman.get_data('critters', self.name, 'stats')
+            self.defense = int(statsin['def'] * (self.lvl / 50 + 1) / 3)
+            self.hp = int(statsin['hp'] * (self.lvl / 50 + 1) / 3)
+            self.spd = int(statsin['spd'] * (self.lvl / 50 + 1) / 3)
+            self.atk = int(statsin['atk'] * (self.lvl / 50 + 1) / 3)
+
+    #add experience after a battle, and levels up if necessesary. gracefully handles repeated level ups
+    def addexp(self, amount):
+        if self.lvl < 100:
+            self.exp += amount
+            keepchecking = True
+            while keepchecking:
+                lvl3 = (self.lvl + 1) * (self.lvl + 1) * (self.lvl + 1)
+                if self.exp > lvl3 and self.lvl < 100:
+                    self.lvlup()
+                else:
+                    keepchecking = False
+
+    #convience methond to force a level up
+    def lvlup(self):
+        if self.lvl < 100:
+            self.setlvl(self.lvl + 1)
 
     #returns a tuple containing the damage to deal, status effects to apply, any changes in own status, and any extra info
     #if the move is not in the dict of current moves returns 0 dmg
