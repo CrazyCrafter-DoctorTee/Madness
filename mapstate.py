@@ -28,8 +28,6 @@ class MapState(gamestate.GameState):
             if event.type == pygame.QUIT:
                 return None
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_b:
-                    return 'battle'
                 self.player.key_down(event.key)
             if event.type == pygame.KEYUP:
                 self.player.key_up(event.key)

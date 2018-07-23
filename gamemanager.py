@@ -1,7 +1,5 @@
 import pygame
 
-import battlestate
-import fighter
 import mapstate
 import iomanager
 
@@ -12,7 +10,6 @@ class GameManager(object):
         self.ioManager = iomanager.IOManager('assets/config.cfg')
         self.screenDims = self.ioManager.get_data('game', 'graphics', 'screendims')
         self.screen = pygame.display.set_mode(self.screenDims)
-        self.fighter = fighter.Fighter(self.ioManager)
         self.gameStates = {'map' : mapstate.MapState(self.ioManager, self.screen)}
         self.state = 'map'
 
@@ -22,8 +19,6 @@ class GameManager(object):
         self.gameStates[self.state].draw()
         if state != self.state:
             self.state = state
-            if self.state == 'battle':
-                self.gameStates['battle'] = battlestate.BattleState(self.screen, self.ioManager, self.fighter)
 
     def draw(self):
         self.maps['start'].draw(self.screen, self.camera.offset)
