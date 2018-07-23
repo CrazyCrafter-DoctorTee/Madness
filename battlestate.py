@@ -8,21 +8,22 @@ import gamestate
 
 class BattleState(gamestate.GameState):
     
-    def __init__(self, screen, ioManager, fighter):
+    def __init__(self, screen, screenDims, ioManager, fighter):
         self.screen = screen
+        self.screenDims = screenDims
         self.fighter = fighter
         self.ioManager = ioManager
-        self.battleImages = ioManager.get_data('battles', 'images')
-        self.battleImages[None] = self.battleImages.pop('plain')
-        self.battleImages = self.create_images(self.battleImages)
-        self.battle = battle.Battle(self.fighter)
+        self.battleImgs = ioManager.get_data('battles', 'images')
+        self.battleImgs[None] = self.battleImgs['done']
+        self.battleImgs = self.create_images(self.battleImgs)
+        self.critterImgs = self.create_images(ioManager.get_data('critters', 'images'))
+        self.battle = battle.Battle(self.fighter, {'battle' : self.battleImgs, 'critter' : self.critterImgs})
         self.print_colors()
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
                            pygame.K_3 : 3,
                            pygame.K_4 : 4,
                            pygame.K_5 : 5}
-        self.critterImgs = ioManager.get_data('critters')
     
     def print_colors(self):
         stime = time.time()
@@ -51,9 +52,10 @@ class BattleState(gamestate.GameState):
         self.battle.run()
     
     def draw(self):
-        for i, pos in self.battle.get_battle_images():
-            self.load_image(self.battleImages[i], pos)
-        for i, pos in self.battle.get_creature_images():
-            self.load_image(self.battleImages[i], pos)
+        images, fonts = self.battle.stateDrawings[self.battle.state]()
+        for i, pos in images:
+            self.load_image(i, pos)
+        for i, pos in fonts:
+            self.print_words(i, pos)
         pygame.display.flip()
                 

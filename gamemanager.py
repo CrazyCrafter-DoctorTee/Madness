@@ -9,8 +9,9 @@ class GameManager(object):
     def __init__(self):
         self.active = True
         pygame.init()
+        pygame.font.init()
         self.ioManager = iomanager.IOManager('assets/config.cfg')
-        self.screenDims = self.ioManager.get_data('game', 'graphics', 'screendims')
+        self.screenDims = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.screen = pygame.display.set_mode(self.screenDims)
         self.fighter = fighter.Fighter(self.ioManager)
         self.gameStates = {'map' : mapstate.MapState(self.ioManager, self.screen)}
@@ -23,7 +24,7 @@ class GameManager(object):
         if state != self.state:
             self.state = state
             if self.state == 'battle':
-                self.gameStates['battle'] = battlestate.BattleState(self.screen, self.ioManager, self.fighter)
+                self.gameStates['battle'] = battlestate.BattleState(self.screen, self.screenDims, self.ioManager, self.fighter)
 
     def draw(self):
         self.maps['start'].draw(self.screen, self.camera.offset)
