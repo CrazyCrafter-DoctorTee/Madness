@@ -3,7 +3,9 @@ import pygame
 import random
 import time
 
+import aifighter
 import battle
+import critter
 import gamestate
 
 class BattleState(gamestate.GameState):
@@ -17,7 +19,8 @@ class BattleState(gamestate.GameState):
         self.battleImgs[None] = self.battleImgs['done']
         self.battleImgs = self.create_images(self.battleImgs)
         self.critterImgs = self.create_images(ioManager.get_data('critters', 'images'))
-        self.battle = battle.Battle(self.fighter, {'battle' : self.battleImgs, 'critter' : self.critterImgs})
+        self.aiFighter = aifighter.AIFighter(self.generate_ai_critters())
+        self.battle = battle.Battle(self.fighter, self.aiFighter, {'battle' : self.battleImgs, 'critter' : self.critterImgs})
         self.print_colors()
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
@@ -49,7 +52,7 @@ class BattleState(gamestate.GameState):
         return 'battle'
         
     def make_actions(self):
-        self.battle.run()
+        pass
     
     def draw(self):
         images, fonts = self.battle.stateDrawings[self.battle.state]()
@@ -58,4 +61,8 @@ class BattleState(gamestate.GameState):
         for i, pos in fonts:
             self.print_words(i, pos)
         pygame.display.flip()
+        
+    def generate_ai_critters(self):
+        return [critter.Critter('doge', self.ioManager, 5),
+                critter.Critter('doge', self.ioManager, 5)]
                 
