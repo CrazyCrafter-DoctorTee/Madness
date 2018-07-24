@@ -2,6 +2,8 @@ import pygame
 
 import mapstate
 import iomanager
+import fighter
+import battlestate
 
 class GameManager(object):
     def __init__(self):
@@ -12,6 +14,7 @@ class GameManager(object):
         self.screenDims = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.screen = pygame.display.set_mode(self.screenDims)
         self.gameStates = {'map' : mapstate.MapState(self.ioManager, self.screen)}
+        self.fighter = fighter.Fighter(self.ioManager)
         self.state = 'map'
 
     def next_frame(self):

@@ -29,6 +29,8 @@ class MapState(gamestate.GameState):
                 return None
             if event.type == pygame.KEYDOWN:
                 self.player.key_down(event.key)
+                if event.key == pygame.K_b:
+                    return 'battle'
             if event.type == pygame.KEYUP:
                 self.player.key_up(event.key)
         return 'map'

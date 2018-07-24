@@ -1,11 +1,12 @@
-import this
 import gamemanager
+#dank memes
+#import this
 
 if __name__ == '__main__':
 
-    try:
-        manager = gamemanager.GameManager()
+    manager = gamemanager.GameManager()
 
+    try:
         while manager.state is not None:
             manager.next_frame()
     except Exception as e:

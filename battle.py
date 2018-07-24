@@ -3,7 +3,7 @@ import pygame
 import aifighter
 
 class Battle(object):
-    
+
     def __init__(self, fighter, aiFighter, images):
         self.battleImgs = images['battle']
         self.critterImgs = images['critter']
@@ -30,11 +30,11 @@ class Battle(object):
         self.stateDrawings = {'default' : self.get_default_battle_images,
                               'target' : self.get_target_battle_images,
                               'turn' : self.get_turn_battle_images}
-        
+
     # DO NOT DELETE, used in self.stateActions
     def do_nothing(self):
         pass
-            
+
     def try_switch(self, key):
         pass
 
@@ -42,10 +42,10 @@ class Battle(object):
         if key == 5:
             self.state = 'switch'
         if key <= len(self.checkCritterMoves):
-            self.actions.append([self.fighter, self.checkingCritter, 
+            self.actions.append([self.fighter, self.checkingCritter,
                                  self.checkCritterMoves[key-1]])
             self.state = 'target'
-            
+
     def select_target(self, key):
         if key < 4:
             if key < 2:
@@ -62,7 +62,7 @@ class Battle(object):
                 self.actions.extend(self.aifighter.get_actions(self))
                 self.actionNumber = 0
                 self.state = 'turn'
-            
+
     def get_ai_actions(self):
         self.actions.extend(aifighter.get_action())
 
@@ -100,7 +100,7 @@ class Battle(object):
         images.extend(critterImages)
         fonts.extend(critterFonts)
         return images, fonts
-    
+
 
     def get_creature_images(self):
         images = []
@@ -119,7 +119,7 @@ class Battle(object):
         images = []
         fonts = []
         images.append([self.battleImgs['default'], (0, 1, 0, 1)])
-        fonts.append(['{} attacked {} with {}'.format(self.actions[self.actionNumber][1].name, 
+        fonts.append(['{} attacked {} with {}'.format(self.actions[self.actionNumber][1].name,
                                                      self.actions[self.actionNumber][3].name,
                                                      self.actions[self.actionNumber][2]),
                         (0.1, 0.9, 0.8, 0.9)])
@@ -127,18 +127,24 @@ class Battle(object):
         images.extend(critterImages)
         fonts.extend(critterFonts)
         return images, fonts
-    
-    def execute_actions(self, num):
+
+    def execute_actions(self):
+        self.actionNumber = 0
         if self.actionNumber < len(self.actions)-1:
-# =============================================================================
-#             critter: self.actions[self.actionNumber][1] 
-#             attacks critter: self.actions[self.actionNumber][3] 
-#             with move: self.actions[self.actionNumber][2]
-# =============================================================================
+
+            attacker = self.actions[self.actionNumber][1]
+            defender = self.actions[self.actionNumber][3]
+            move = self.actions[self.actionNumber][2]
+
+            moveresult = actor.attack(move)
+            defendresult = defender.defend(moveresult)
+            print(moveresult)
+            print(defendresult)
+
             self.actionNumber += 1
         else:
             self.end_turn()
-            
+
     def end_turn(self):
         self.actions = []
         self.state = 'default'

@@ -4,10 +4,10 @@ import critter
 import battle
 
 class AIFighter(object):
-    
+
     def __init__(self, critters=[]):
         self.critters = critters
-    
+
     def get_actions(self, battle):
         myCritters = battle.aifighterCritters
         enemyCritters = battle.fighterCritters
