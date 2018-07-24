@@ -9,7 +9,7 @@ SIZE = 128
 def genBasicMatrix():
     matrix = []
     choiceList = []
-    for i in range(12):
+    for i in range(28):
         choiceList.append('g')
     for i in range(3):
         choiceList.append('t')
@@ -25,7 +25,7 @@ def genBasicMatrix():
 
 #Outputs the map to file
 def makemap(matrix):
-    garbo = open("map.map", "w")
+    garbo = open("assets/map.map", "w")
     height = str(len(matrix))
     width = str(len(matrix[0]))
     garbo.write(height + " " + width + "\n")

@@ -32,7 +32,8 @@ class GameMap(object):
         return mapTiles, (offsetX, offsetY), self.tileDims
 
     def tile_speed(self, x, y):
-        # TODO: will determine if player can walk on tile
+        if self.tiles[x][y] in ('r','b','t'):
+            return 0
         return 1
 
     def get_movement(self, cords, move): # TODO: can we clean this up?
@@ -41,16 +42,16 @@ class GameMap(object):
         if move == 'l':
             if tileX <= 0:
                 return 0
-            return self.tile_speed(x-1, y) * -self.tileDims[0]
+            return self.tile_speed(tileX-1, tileY) * -self.tileDims[0]
         elif move == 'r':
             if tileX >= (self.maxDims[0]-1)//self.tileDims[0]:
                 return 0
-            return self.tile_speed(x+1, y) * self.tileDims[0]
+            return self.tile_speed(tileX+1, tileY) * self.tileDims[0]
         elif move == 'u':
             if tileY <= 0:
                 return 0
-            return self.tile_speed(x, y-1) * -self.tileDims[1]
+            return self.tile_speed(tileX, tileY-1) * -self.tileDims[1]
         elif move == 'd':
             if tileY >= (self.maxDims[1]-1)//self.tileDims[1]:
                 return 0
-            return self.tile_speed(x-1, y+1) * self.tileDims[1]
+            return self.tile_speed(tileX, tileY+1) * self.tileDims[1]
