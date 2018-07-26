@@ -5,6 +5,7 @@ import aifighter
 class Battle(object):
 
     def __init__(self, fighter, aiFighter, images):
+        self.actionNumber = None # TODO: remove, here only for debugging
         self.battleImgs = images['battle']
         self.critterImgs = images['critter']
         self.fighter = fighter
@@ -128,19 +129,17 @@ class Battle(object):
         fonts.extend(critterFonts)
         return images, fonts
 
-    def execute_actions(self):
-        self.actionNumber = 0
+    def execute_actions(self, key=None):
         if self.actionNumber < len(self.actions)-1:
 
             attacker = self.actions[self.actionNumber][1]
             defender = self.actions[self.actionNumber][3]
             move = self.actions[self.actionNumber][2]
 
-            moveresult = actor.attack(move)
+            moveresult = attacker.attack(move)
             defendresult = defender.defend(moveresult)
             print(moveresult)
             print(defendresult)
-
             self.actionNumber += 1
         else:
             self.end_turn()
