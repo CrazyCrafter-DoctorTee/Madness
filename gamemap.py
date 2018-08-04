@@ -31,27 +31,27 @@ class GameMap(object):
             mapTiles.append(self.tiles[i][y1:y2+1])
         return mapTiles, (offsetX, offsetY), self.tileDims
 
-    def tile_speed(self, x, y):
+    def impassable(self, x, y):
         if self.tiles[x][y] in ('r','b','t'):
-            return 0
-        return 1
+            return True
+        return False
 
     def get_movement(self, cords, move): # TODO: can we clean this up?
         tileX, tileY = cords[0]//self.tileDims[0], cords[1]//self.tileDims[1]
         x, y = cords
         if move == 'l':
-            if tileX <= 0:
+            if tileX <= 0 or self.impassable(tileX-1, tileY):
                 return 0
-            return self.tile_speed(tileX-1, tileY) * -self.tileDims[0]
+            return -self.tileDims[0]
         elif move == 'r':
-            if tileX >= (self.maxDims[0]-1)//self.tileDims[0]:
+            if tileX >= (self.maxDims[0]-1)//self.tileDims[0] or self.impassable(tileX+1, tileY):
                 return 0
-            return self.tile_speed(tileX+1, tileY) * self.tileDims[0]
+            return self.tileDims[0]
         elif move == 'u':
-            if tileY <= 0:
+            if tileY <= 0 or self.impassable(tileX, tileY-1):
                 return 0
-            return self.tile_speed(tileX, tileY-1) * -self.tileDims[1]
+            return -self.tileDims[1]
         elif move == 'd':
-            if tileY >= (self.maxDims[1]-1)//self.tileDims[1]:
+            if tileY >= (self.maxDims[1]-1)//self.tileDims[1] or self.impassable(tileX, tileY+1):
                 return 0
-            return self.tile_speed(tileX, tileY+1) * self.tileDims[1]
+            return self.tileDims[1]

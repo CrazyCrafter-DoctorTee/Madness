@@ -7,7 +7,6 @@ class Player(object):
         self.goalDims = startDims # where the player is headed, can you come up with a better name?
         self.currMove = None
         self.lastMove = 0
-        self.speed = 20 # px/frame
 
     def key_down(self, key):
         self.currMove = key
@@ -20,13 +19,13 @@ class Player(object):
         if self.currMove and self.goalDims[0] == self.position[0] and self.goalDims[1] == self.position[1]:
             self.get_movement()
         if self.position[0] < self.goalDims[0]:
-            self.position[0] += min(self.speed, self.goalDims[0]-self.position[0])
+            self.position[0] += self.goalDims[0]-self.position[0]
         elif self.position[0] > self.goalDims[0]:
-            self.position[0] += max(-self.speed, self.goalDims[0]-self.position[0])
+            self.position[0] += self.goalDims[0]-self.position[0]
         elif self.position[1] < self.goalDims[1]:
-            self.position[1] += min(self.speed, self.goalDims[1]-self.position[1])
+            self.position[1] += self.goalDims[1]-self.position[1]
         elif self.position[1] > self.goalDims[1]:
-            self.position[1] += max(-self.speed, self.goalDims[1]-self.position[1])
+            self.position[1] += self.goalDims[1]-self.position[1]
 
     def get_movement(self):
         if self.currMove == pygame.K_LEFT:

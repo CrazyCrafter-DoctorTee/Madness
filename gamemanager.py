@@ -11,7 +11,9 @@ class GameManager(object):
         pygame.init()
         pygame.font.init()
         self.ioManager = iomanager.IOManager('assets/config.cfg')
-        self.screenDims = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        #self.screenDims = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        ## TODO: fix drawing so that it works at other resolultiojs
+        self.screenDims = (1280,704)
         self.screen = pygame.display.set_mode(self.screenDims)
         self.gameStates = {'map' : mapstate.MapState(self.ioManager, self.screen)}
         self.fighter = fighter.Fighter(self.ioManager)
