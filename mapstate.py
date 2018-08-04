@@ -12,6 +12,7 @@ class MapState(gamestate.GameState):
     def __init__(self, ioManager, screen):
         self.ioManager = ioManager
         self.screen = screen
+        self.tick = 0
         self.screenDims = pygame.display.get_surface().get_size()
         self.images = self.create_images(self.ioManager.get_data('images'))
         maps = self.ioManager.get_data('maps')
@@ -46,8 +47,13 @@ class MapState(gamestate.GameState):
             i, x = i+1, x+tileSize[0]
 
     def make_actions(self):
-        self.player.move()
-        self.enemy.move()
+        if self.tick == 0:
+            self.player.move()
+            self.enemy.move()
+            #Frame divider
+            self.tick = 2
+        else:
+            self.tick -= 1
 
     def draw(self):
         playerCords = self.player.position
