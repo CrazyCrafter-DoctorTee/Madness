@@ -54,7 +54,7 @@ class Critter:
         dmgtaken = 0
         if(attack[0] > 0):
             dmgtaken = int(attack[0] / self.defense + 1)
-            self.hp -= dmgtaken
+            self.currenthp -= dmgtaken
         if(len(attack) > 1):
             for i in range(0, len(attack[1]), 2):
                 if random.randint(0, 99) < attack[1][i + 1]:

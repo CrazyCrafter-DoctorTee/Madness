@@ -1,17 +1,20 @@
 import pygame
+import queue
 
 import aifighter
+
+
 
 class Battle(object):
 
     def __init__(self, fighter, aiFighter, images):
-        self.actionNumber = None # TODO: remove, here only for debugging
         self.battleImgs = images['battle']
         self.critterImgs = images['critter']
         self.fighter = fighter
         self.aifighter = aiFighter
         self.fighterCritters = []
         self.aifighterCritters = []
+        self.logMsgs = queue.Queue()
         i = 0
         while len(self.fighterCritters) < 2 and i < len(self.fighter.critters):
             if self.fighter.critters[i].currenthp > 0:
@@ -20,17 +23,16 @@ class Battle(object):
             self.aifighterCritters = self.aifighter.critters[0:2]
         else:
             self.aifighterCritters = list(self.aifighterCritters)
-        self.state = 'default'
-        self.checkingCritter = self.fighterCritters[0]
+        self.state = 'move'
+        self.checkCritter = self.fighterCritters[0]
+        self.checkCritterMoves = list(self.checkCritter.currentmoves.keys())
         self.actions = [] # list of lists: player, critter, move, target
-        self.stateActions = {'default' : self.try_move,
+        self.checkCritter = self.fighterCritters[0]
+        self.stateActions = {'move' : self.try_move,
                         'switch' : self.try_switch,
                         'target' : self.select_target,
                         None : self.do_nothing,
                         'turn': self.execute_actions}
-        self.stateDrawings = {'default' : self.get_default_battle_images,
-                              'target' : self.get_target_battle_images,
-                              'turn' : self.get_turn_battle_images}
 
     # DO NOT DELETE, used in self.stateActions
     def do_nothing(self):
@@ -42,23 +44,17 @@ class Battle(object):
     def try_move(self, key):
         if key == 5:
             self.state = 'switch'
-        if key <= len(self.checkCritterMoves):
-            self.actions.append([self.fighter, self.checkingCritter,
-                                 self.checkCritterMoves[key-1]])
+        elif key <= len(self.checkCritterMoves):
+            self.actions.append(['fighter', self.checkCritter, self.checkCritterMoves[key-1], None])
             self.state = 'target'
 
     def select_target(self, key):
-        if key < 4:
-            if key < 2:
-                self.actions[-1].append(self.aifighterCritters[key])
-            else:
-                if len(self.actions) == 1:
-                    self.actions[-1].append(self.fighterCritters[1])
-                else:
-                    self.actions[-1].append(self.fighterCritters[0])
-            if len(self.actions) < 2:
-                self.state = 'default'
-                self.checkingCritter = self.fighterCritters[1]
+        if 1 <= key <= 3:
+            self.actions[-1][3] = key
+            if len(self.actions) == 1:
+                self.state = 'move'
+                self.checkCritter = self.fighterCritters[1]
+                self.checkCritterMoves = list(self.fighterCritters[1].currentmoves.keys())
             else:
                 self.actions.extend(self.aifighter.get_actions(self))
                 self.actionNumber = 0
@@ -73,7 +69,7 @@ class Battle(object):
         self.checkCritterMoves = []
         images.append((self.battleImgs[self.state], (0,1,0,1)))
         x, y = 0.05, 0.8
-        for name, value in self.checkingCritter.currentmoves.items():
+        for name, value in self.checkCritter.currentmoves.items():
             images.append((self.battleImgs['redbox'], (x, x+0.15, y, y+0.11)))
             fonts.append((name, (x+0.01,x+0.14, y+0.01, y+0.1)))
             self.checkCritterMoves.append(name)
@@ -103,47 +99,59 @@ class Battle(object):
         return images, fonts
 
 
-    def get_creature_images(self):
-        images = []
-        fonts = []
-        images.append([self.critterImgs[self.fighterCritters[0].name], (0.1, 0.35, 0, 0.25)])
-        images.append([self.critterImgs[self.fighterCritters[1].name], (0.1, 0.35, 0.27, 0.52)])
-        images.append([self.critterImgs[self.aifighterCritters[0].name], (0.65, 0.9, 0, 0.25)])
-        images.append([self.critterImgs[self.aifighterCritters[1].name], (0.65, 0.9, 0.27, 0.52)])
-        fonts.append([str(self.fighterCritters[0].currenthp), (0.05, 0.1, 0.1, 0.2)])
-        fonts.append([str(self.fighterCritters[1].currenthp), (0.05, 0.1, 0.37, 0.47)])
-        fonts.append([str(self.aifighterCritters[0].currenthp), (0.9, 0.95, 0.1, 0.2)])
-        fonts.append([str(self.aifighterCritters[1].currenthp), (0.9, 0.95, 0.37, 0.47)])
-        return images, fonts
-
     def get_turn_battle_images(self):
         images = []
         fonts = []
         images.append([self.battleImgs['default'], (0, 1, 0, 1)])
-        fonts.append(['{} attacked {} with {}'.format(self.actions[self.actionNumber][1].name,
-                                                     self.actions[self.actionNumber][3].name,
-                                                     self.actions[self.actionNumber][2]),
-                        (0.1, 0.9, 0.8, 0.9)])
         critterImages, critterFonts = self.get_creature_images()
         images.extend(critterImages)
         fonts.extend(critterFonts)
         return images, fonts
 
+    def handle_move_result(self, defender, result):
+        stats = {'atk' : 'attack', 'def' : 'defense', 'spd' : 'speed'}
+        upOrDown = {'up' : 'up', 'dn' : 'down'}
+        for status in result[1]:
+            msg = ''
+            if status == 'DEAD':
+                msg = '{} died'.format(defender)
+            elif status == 'psn':
+                msg = '{} was poisoned'.format(defender.name)
+            elif status == 'slp':
+                msg = '{} went to sleep'.format(defender.name)
+            elif status == 'con':
+                msg = '{} got confused'.format(defender.name)
+            elif status == 'brn':
+                msg = '{} was burned'.format(defender.name)
+            elif status == 'recha':
+                msg = '{} is recharging'.format(defender.name)
+            elif len(status) == 5 and status[0:3] in stats.keys():
+                msg = '{}\'s {} went {}'.format(defender, stats[status[0:3], upOrDown[status[4:6]]])
+            else:
+                print('ERROR: Could not parse {}'.format(status))
+            self.logMsgs.put(msg)
+
     def execute_actions(self, key=None):
         if self.actionNumber < len(self.actions)-1:
-
             attacker = self.actions[self.actionNumber][1]
-            defender = self.actions[self.actionNumber][3]
-            move = self.actions[self.actionNumber][2]
-
-            moveresult = attacker.attack(move)
-            defendresult = defender.defend(moveresult)
-            print(moveresult)
-            print(defendresult)
+            if not attacker.dead:
+                defender = self.actions[self.actionNumber][3]
+                move = self.actions[self.actionNumber][2]
+                moveresult = attacker.attack(move)
+                defendResult = defender.defend(moveresult)
+                # (0.1, 0.9, 0.8, 0.9)
+                self.logMsg.put('{} attacked {} with {}'.format(attacker.name,
+                                                              defender.name,
+                                                              move))
+                self.handle_move_result(defender, defendResult)
             self.actionNumber += 1
         else:
             self.end_turn()
 
     def end_turn(self):
         self.actions = []
-        self.state = 'default'
+        self.fighterCritters[0].update_status()
+        self.fighterCritters[1].update_status()
+        self.aifighterCritters[0].update_status()
+        self.aifighterCritters[1].update_status()
+        self.state = 'move'
