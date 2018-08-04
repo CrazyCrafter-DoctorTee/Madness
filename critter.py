@@ -209,3 +209,6 @@ class Critter:
                     if self.recctr == 0:
                         removestats.append('recha')
             self.remove_status(removestats)
+        if self.currenthp < 1:
+            self.currenthp = 0
+            self.dead = True
