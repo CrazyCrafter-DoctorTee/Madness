@@ -19,6 +19,7 @@ class Critter:
         self.conctr = 0
         self.slpctr = 0
         self.recctr = 0
+        self.dead = False
         self.status = []
         if(currenthp == None or currenthp > self.hp):
             self.currenthp = self.hp
@@ -55,6 +56,10 @@ class Critter:
         if(attack[0] > 0):
             dmgtaken = int(attack[0] / self.defense + 1)
             self.currenthp -= dmgtaken
+            if self.currenthp < 1:
+                self.currenthp = 0
+                self.dead = True
+                addedstatus.append("DEAD")
         if(len(attack) > 1):
             for i in range(0, len(attack[1]), 2):
                 if random.randint(0, 99) < attack[1][i + 1]:
@@ -103,6 +108,8 @@ class Critter:
         info = ''
         damage = movedict['dmg'] * self.atk * ((2 + self.status.count('dmgup')) / (2 + self.status.count('dmgdn')))
         #check to make sure attack can be executed:
+        if self.dead:
+            return (0, (), (), 'DEAD')
         if move not in self.currentmoves:
             return (0, (), (), 'invalid')
         if self.currentmoves[move] == 0:
@@ -174,6 +181,10 @@ class Critter:
     #removes statuses from the critter. Takes a tuple of keywords as input
     def remove_status(self, statuses):
         self.status = [stat for stat in self.status if stat not in statuses]
+
+    def getspeed(self):
+        sefl.crunch_status()
+        return self.spd * ((2 + self.status.count('spdup')) / (2 + self.status.count('spddn')))
 
     #update stats and deal with burn dmg and such at the end of turn
     def update_status(self):
