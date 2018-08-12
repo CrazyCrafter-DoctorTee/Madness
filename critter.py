@@ -101,7 +101,8 @@ class Critter:
 
     #returns a tuple containing the damage to deal, status effects to apply, any changes in own status, and any extra info
     #if the move is not in the dict of current moves returns 0 dmg
-    def attack(self, move):
+    def attack(self, moveNum):
+        move = self.get_move_by_num(moveNum)
         movedict = self.ioman.get_data('moves', move)
         status = []
         addedstatus = []
@@ -212,3 +213,11 @@ class Critter:
         if self.currenthp < 1:
             self.currenthp = 0
             self.dead = True
+            
+    def get_move_list(self):
+        return list(self.currentmoves.keys())
+    
+    def get_move_by_num(self, num):
+        if num < len(self.currentmoves):
+            return list(self.currentmoves.keys())[num]
+        return None
