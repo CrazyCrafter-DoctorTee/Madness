@@ -72,11 +72,17 @@ class BattleState(gamestate.GameState):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mpos = pygame.mouse.get_pos()
                 for button in self.buttons:
-                    if button.update(mpos[0],mpos[1]) != 0:
-                        pass
-                        #deal with buttons
+                    bu = button.update(mpos[0],mpos[1])
+                    if bu != 0:
+                        returncode = self.stepFuncs[self.step[0]](self.step[1], bu-1)
+                        if returnCode == 1:
+                            self.step = self.determine_next_step()
+                        elif returnCode == 2 or returnCode == 3 or returnCode == 4:
+                            self.battleover = True
+                        elif returnCode == 5:
+                            self.step = ('switch', self.step[1])
         return 'battle'
-    
+
     def draw(self):
         images, fonts = [[self.battleImgs['default'], (0, 1, 0, 1)]], []
         if self.step[0] == 'move':
@@ -101,13 +107,9 @@ class BattleState(gamestate.GameState):
         pygame.display.flip()
 
     def make_actions(self):
-<<<<<<< HEAD
-        pass
-=======
         if self.battleover:
             return 'map'
         return 'battle'
->>>>>>> 0f0af3f45ce8e47f2dd9f4c2331bf6a90eb780d2
 
     def determine_next_step(self):
         if self.step[0] == 'target' or self.step[0] == 'switch':
