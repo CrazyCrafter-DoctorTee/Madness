@@ -12,6 +12,7 @@ class MapState(gamestate.GameState):
     def __init__(self, ioManager, screen):
         self.ioManager = ioManager
         self.screen = screen
+        self.exiting = False
         self.tick = 0
         self.screenDims = pygame.display.get_surface().get_size()
         self.images = self.create_images(self.ioManager.get_data('images'))
@@ -27,14 +28,11 @@ class MapState(gamestate.GameState):
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return None
+                self.exiting = True
             if event.type == pygame.KEYDOWN:
                 self.player.key_down(event.key)
-                if event.key == pygame.K_b:
-                    return 'battle'
             if event.type == pygame.KEYUP:
                 self.player.key_up(event.key)
-        return 'map'
 
     def draw_map(self, tileList, startCords, tileSize):
         i, x = 0, startCords[0]
@@ -47,13 +45,17 @@ class MapState(gamestate.GameState):
             i, x = i+1, x+tileSize[0]
 
     def make_actions(self):
+        nextstate = 'map'
         if self.tick == 0:
-            self.player.move()
+            nextstate = self.player.move()
             self.enemy.move()
             #Frame divider
             self.tick = 2
         else:
             self.tick -= 1
+        if self.exiting:
+            nextstate = None
+        return nextstate
 
     def draw(self):
         playerCords = self.player.position
