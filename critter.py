@@ -2,8 +2,10 @@ import iomanager
 import random
 
 class Critter:
+
     #requires at minimum the critter tag and io manager, also takes a level, dict of moves and their pp, and current hit points
     def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None, extraexp=0):
+        self.statusnames = {'slp':'asleep', 'par':'paralyzed', 'brn':'burned','psn':'poisoned','con':'confused','frz':'frozen','recha':'recharging','strup':'stronger','strdn':'weaker','spdup':'faster','spddn':'slower','defup':'sturdier','defdn':'flimsier'}
         self.ioman = ioman
         self.name = name
         statsin = self.ioman.get_data('critters', name, 'stats')
@@ -48,10 +50,9 @@ class Critter:
                 currentmoves = dict(currentmoves.items()[:3])
             self.currentmoves = currentmoves
 
-    #returns a tuple containing the damage taken, any added status effects, and any extra info
+    #returns a tuple containing the damage taken and the stuff to print
     def defend(self, attack):
-        addedstatus = []
-        extrainfo = ''
+        extrainfo = []
         dmgtaken = 0
         if(attack[0] > 0):
             dmgtaken = int(attack[0] / self.defense + 1)
@@ -59,23 +60,25 @@ class Critter:
             if self.currenthp < 1:
                 self.currenthp = 0
                 self.dead = True
-                addedstatus.append("DEAD")
+                extrainfo.append("{} was sent to the shadow realm!".format(self.name))
+            else:
+                extrainfo.append("{} took {} damage".format(self.name, dmgtaken))
         if(len(attack) > 1):
             for i in range(0, len(attack[1]), 2):
                 if random.randint(0, 99) < attack[1][i + 1]:
                     self.status.append(attack[1][i])
-                    addedstatus.append(attack[1][i])
+                    extrainfo.append("{} is {}!".format(self.name, self.statusnames[attack[1][i]]))
                     if attack[1][i] == 'slp':
                         self.slpctr = random.randint(1,7)
                     elif attack[1][i] == 'con':
                         self.conctr = random.randint(1,4)
             self.crunch_status()
-        return (dmgtaken, addedstatus, extrainfo)
+        return extrainfo
 
     #sets the level to a new value and updates stats accordingly
     def setlvl(self, newlvl):
         if newlvl > 0 and newlvl < 101:
-            self.lvl += 1
+            self.lvl = newlvl
             statsin = self.ioman.get_data('critters', self.name, 'stats')
             self.defense = int(statsin['def'] * (self.lvl / 50 + 1) / 3)
             self.hp = int(statsin['hp'] * (self.lvl / 50 + 1) / 3)
@@ -105,39 +108,38 @@ class Critter:
         move = self.get_move_by_num(moveNum)
         movedict = self.ioman.get_data('moves', move)
         status = []
-        addedstatus = []
-        info = ''
+        extrainfo = []
         damage = movedict['dmg'] * self.atk * ((2 + self.status.count('dmgup')) / (2 + self.status.count('dmgdn')))
         #check to make sure attack can be executed:
         if self.dead:
-            return (0, (), (), 'DEAD')
+            return (0, (), "{} is in the shadow realm and cannot attack".format(self.name))
         if move not in self.currentmoves:
-            return (0, (), (), 'invalid')
+            return (0, (), "{} cannot execute {}".format(self.name, move))
         if self.currentmoves[move] == 0:
-            return (0, (), (), 'nopp')
+            return (0, (), "{} can no longer perform {}".format(self.name, move))
         if self.status.count('recha') > 0:
-            return (0, (), (), 'recharging')
+            return (0, (), "{} is recharging".format(self.name))
         if self.status.count('para'):
             if random.randint(0,3) == 0:
-                return (0, (), (), 'paralyzed')
+                return (0, (), "{} is paralyzed and cannot attack".format(self.name))
         if self.status.count('fli') > 0:
-            return (0, (), (), 'flinched')
+            return (0, (), "{} flinched due to a lack of mental fortitiude".format(self.name))
         if self.status.count('frz') > 0:
-            return (0, (), (), 'frozen')
+            return (0, (), "{} is chilling with the caveman right now".format(self.name))
         if self.status.count('con') > 0:
             self.conctr -= 1
             if random.randint(0,1) == 0:
                 self.defend((40 * self.atk), (), (), '')
-                return (0, (), (), 'confused')
+                return (0, (), "{} needs to stop hitting itself".format(self.name))
         #decrement pp now
         self.currentmoves[move] -= 1
         #handle accuracy
         if 'acc' in movedict:
             if random.randint(0, 99) > movedict['acc']:
-                return (0, (), (), 'miss')
+                return (0, (), "{} has problems hitting the target".format(self.name))
         else:
             if random.randint(0, 255) == 0:
-                return (0, (), (), 'gen1miss')
+                return (0, (), "{} is never lucky".format(self.name))
         if 'status' in movedict:
             status.extend(movedict['status'])
         #handle updates to own status
@@ -145,12 +147,12 @@ class Critter:
             for i in range(0, len(movedict['selfstatus']), 2):
                 if random.randint(0, 99) < movedict['selfstatus'][i + 1]:
                     self.status.append(movedict['selfstatus'][i])
-                    addedstatus.append(movedict['selfstatus'][i])
+                    extrainfo.append("{} is {}!".format(self.name, self.statusnames[attack[1][i]]))
                     if movedict['selfstatus'][i] == 'recha':
                         self.recctr = 2
             self.crunch_status()
         #actually deal with the attack
-        return (damage, status, addedstatus, info)
+        return (damage, status, extrainfo)
 
     #removes conflicting status effects
     def crunch_status(self):
@@ -189,26 +191,28 @@ class Critter:
 
     #update stats and deal with burn dmg and such at the end of turn
     def update_status(self): # TODO: complete log messaging
-        result = []
+        extrainfo = []
         if len(self.status) > 0:
             removestats = []
+            #removes flinch
             if self.status.count('fli') > 0:
                 self.status = [stat for stat in self.status if stat != 'fli']
-                # result.append('?') # TODO: what does this mean?
             for stat in self.status:
                 if stat == 'brn':
                     self.currenthp -= int(self.hp / 8)
-                    result.append('brn', '{} took damage from burn'.format(self.name))
+                    extrainfo.append('brn', '{} took damage from burn'.format(self.name))
                 elif stat == 'psn':
                     self.currenthp -= int(self.hp / 8)
-                    result.append('psn', '{} took damage from poison'.format(self.name))
+                    extrainfo.append('psn', '{} took damage from poison'.format(self.name))
                 elif stat == 'con':
                     if self.conctr == 0:
                         removestats.append('con')
+                        extrainfo.append("{} is no longer confused".format(self.name))
                 elif stat == 'slp':
                     self.slpctr -= 1
                     if self.slpctr == 0:
                         removestats.append('slp')
+                        extrainfo.append("{} is no longer catching Zzz's".format(self.name))
                 elif stat == 'recha':
                     self.recctr -= 1
                     if self.recctr == 0:
@@ -217,12 +221,12 @@ class Critter:
         if self.currenthp < 1:
             self.currenthp = 0
             self.dead = True
-            return ('DEAD', '{} died'.format(self.name))
-        return result
-            
+            return ('DEAD', '{} was sent to the shadow realm!'.format(self.name))
+        return extrainfo
+
     def get_move_list(self):
         return list(self.currentmoves.keys())
-    
+
     def get_move_by_num(self, num):
         if num < len(self.currentmoves):
             return list(self.currentmoves.keys())[num]
