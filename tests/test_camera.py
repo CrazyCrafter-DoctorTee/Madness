@@ -17,4 +17,11 @@ def test_generate_offset():
     cam.generate_offset((2240, 2240))
     assert cam.topLeft == (1862, 1610)
     cam.generate_offset((320, 320))
-    assert cam.topLeft == (320, 320)
+    assert cam.topLeft == (0, 0)
+    cam.generate_offset((3900, 3900))
+    assert cam.topLeft == (3308, 2804)
+    
+def test_get_position_in_window():
+    cam = camera.Camera((764, 1280), (4064, 4064))
+    cam.topLeft = (1000, 1000)
+    assert cam.get_position_in_window((1280, 1280)) == (280, 280)

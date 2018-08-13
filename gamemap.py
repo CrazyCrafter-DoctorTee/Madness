@@ -1,7 +1,7 @@
 class GameMap(object):
     def __init__(self, filename, tileDims=(32, 32)):
         self.tileDims = tileDims
-        self.template = self.generate_template(filename)
+        self.generate_template(filename)
 
     def generate_template(self, filename):
         lines = []
@@ -16,7 +16,7 @@ class GameMap(object):
         for i in range(1, self.dims[0]+1):
             self.tiles.append(lines[i].split())
 
-    def get_tile_dims(self, startX, startY, screenDims):
+    def get_tile_dims(self, startX, startY, screenDims): # TODO: rename to get_tile_print_range
         x1, y1 = startX//self.tileDims[0], startY//self.tileDims[1]
         x2 = x1 + screenDims[0]//self.tileDims[0] + (1 if startX % self.tileDims[0] else 0)
         y2 = y1 + screenDims[1]//self.tileDims[1] + (1 if startX % self.tileDims[1] else 0)

@@ -15,7 +15,6 @@ class Camera(object):
         else:
             y = max(0, playY-self.screenDims[1]//2)
         self.topLeft = (x, y)
-        print(self.maxDims)
 
     def get_position_in_window(self, objectCords):
         objX, objY = objectCords

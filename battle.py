@@ -189,7 +189,6 @@ class BattleHandler(object):
             raise Exception('Invalid action added!')
     
     def next_step(self):
-        print('next step')
         if self.turnInitialized == False:
             self.initialize_turn()
         if not self.actionQueue.empty():
@@ -243,12 +242,10 @@ class BattleHandler(object):
         #    pass
     
     def initialize_turn(self):
-        print('initializing...')
         self.actionQueue = queue.Queue()
         self.nextAction = None
         self.turnActions.extend(self.aiFighter.get_actions(self.battleInfo.critters))
         for a in self.battleInfo.get_ordered_turns(self.turnActions):
-            print(a)
             self.actionQueue.put(a)
         self.turnInitialized = True
         
