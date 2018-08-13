@@ -19,7 +19,7 @@ stepFuncs function error codes:
 '''
 
 class BattleState(gamestate.GameState):
-    
+
     def __init__(self, screen, screenDims, ioManager, fighter):
         self.screen = screen
         self.screenDims = screenDims
@@ -42,7 +42,7 @@ class BattleState(gamestate.GameState):
                            pygame.K_3 : 3,
                            pygame.K_4 : 4,
                            pygame.K_5 : 5}
-    
+
     def print_colors(self):
         stime = time.time()
         lastChange = 0
@@ -54,7 +54,7 @@ class BattleState(gamestate.GameState):
                 self.screen.fill(last_color)
                 pygame.display.flip()
                 lastChange = time.time()
-                
+
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -70,8 +70,13 @@ class BattleState(gamestate.GameState):
                         return 'map'
                     elif returnCode == 5:
                         self.step = ('switch', self.step[1])
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mpos = pygame.mouse.get_pos()
+                for button in self.buttons:
+                    if button.update(mpos[0],mpos[1]) != 0:
+                        #deal with buttons
         return 'battle'
-        
+
     def draw(self):
         images, fonts = [[self.battleImgs['default'], (0, 1, 0, 1)]], []
         if self.step[0] == 'move':
@@ -93,11 +98,11 @@ class BattleState(gamestate.GameState):
             self.load_image(i, pos)
         for i, pos in fonts:
             self.print_words(i, pos)
-        pygame.display.flip()    
+        pygame.display.flip()
 
     def make_actions(self):
         pass
-    
+
     def determine_next_step(self):
         if self.step[0] == 'target' or self.step[0] == 'switch':
             if self.step[1] == 0 and self.battle.valid_critter(1):
@@ -117,12 +122,12 @@ class BattleState(gamestate.GameState):
             return ('end', 2)
         else:
             raise Exception('Could not determine next step: {}'.format(self.step))
-                
-        
+
+
     def generate_ai_critters(self):
         return [critter.Critter('doge', self.ioManager, 5),
                 critter.Critter('snek', self.ioManager, 5)]
-        
+
     def select_move(self, critPos, moveNum):
         if moveNum == 4:
             return 5
@@ -130,18 +135,18 @@ class BattleState(gamestate.GameState):
             self.currentMoveNum = moveNum
             return 1
         return 0
-    
+
     def select_target(self, critterPos, targetPos):
         if self.battle.valid_target(critterPos, targetPos):
             self.battle.add_action(critterPos, targetPos, self.currentMoveNum)
             self.currentMove = None
             return 1
         return 0
-   
-    # params there so it can be called even with no     
+
+    # params there so it can be called even with no
     def run_turn(self, critterPos=None, targetPos=None):
         return self.battle.next_step()
-    
+
     def run_end(self, critterPos=None, targetPos=None):
         return self.battle.end_action()
 
