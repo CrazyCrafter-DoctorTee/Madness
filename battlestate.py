@@ -15,6 +15,7 @@ stepFuncs function error codes:
     2: player won
     3: player lost
     4: tie
+    5: perform switch
 '''
 
 class BattleState(gamestate.GameState):
@@ -33,7 +34,9 @@ class BattleState(gamestate.GameState):
         self.step = ('move', 0)
         self.stepFuncs = {'move' : self.select_move,
                           'target' : self.select_target,
-                          'turn' : self.run_turn}
+                          'turn' : self.run_turn,
+                          'end' : self.run_end,
+                          'switch' : self.try_switch}
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
                            pygame.K_3 : 3,
@@ -60,11 +63,13 @@ class BattleState(gamestate.GameState):
                 if event.key == pygame.K_m: # TODO: remove when debugging is done
                     return 'map'
                 if event.key in self.keyMapping:
-                    errorCode = self.stepFuncs[self.step[0]](self.step[1], self.keyMapping[event.key]-1)
-                    if errorCode == 1:
+                    returnCode = self.stepFuncs[self.step[0]](self.step[1], self.keyMapping[event.key]-1)
+                    if returnCode == 1:
                         self.step = self.determine_next_step()
-                    elif errorCode == 2 or errorCode == 3 or errorCode == 4:
+                    elif returnCode == 2 or returnCode == 3 or returnCode == 4:
                         return 'map'
+                    elif returnCode == 5:
+                        self.step = ('switch', self.step[1])
         return 'battle'
         
     def draw(self):
@@ -77,6 +82,10 @@ class BattleState(gamestate.GameState):
             targetImgs, targetFonts = self.get_target_images()
             images.extend(targetImgs)
             fonts.extend(targetFonts)
+        elif self.step[0] == 'switch':
+            switchImages, switchFonts = self.get_switch_images()
+            images.extend(switchImages)
+            fonts.extend(switchFonts)
         critterImgs, critterFonts = self.get_critter_images()
         images.extend(critterImgs)
         fonts.extend(critterFonts)
@@ -90,29 +99,33 @@ class BattleState(gamestate.GameState):
         pass
     
     def determine_next_step(self):
-        if self.step[0] == 'target':
+        if self.step[0] == 'target' or self.step[0] == 'switch':
             if self.step[1] == 0 and self.battle.valid_critter(1):
                 return ('move', 1)
             else:
-                return ('turn', 0)
+                return ('turn', 2)
         elif self.step[0] == 'move':
             return ('target', self.step[1])
-        elif self.step[0] == 'turn':
+        elif self.step[0] == 'end':
             if self.battle.valid_critter(0):
                 return ('move', 0)
             elif self.battle.valid_critter(1):
                 return ('move', 1)
             else:
                 raise Exception('Turn ended wit no usable critters')
+        elif self.step[0] == 'turn':
+            return ('end', 2)
         else:
             raise Exception('Could not determine next step: {}'.format(self.step))
                 
         
     def generate_ai_critters(self):
         return [critter.Critter('doge', self.ioManager, 5),
-                critter.Critter('doge', self.ioManager, 5)]
+                critter.Critter('snek', self.ioManager, 5)]
         
     def select_move(self, critPos, moveNum):
+        if moveNum == 4:
+            return 5
         if self.battle.valid_move(critPos, moveNum):
             self.currentMoveNum = moveNum
             return 1
@@ -128,6 +141,15 @@ class BattleState(gamestate.GameState):
     # params there so it can be called even with no     
     def run_turn(self, critterPos=None, targetPos=None):
         return self.battle.next_step()
+    
+    def run_end(self, critterPos=None, targetPos=None):
+        return self.battle.end_action()
+
+    def try_switch(self, critPos, switchNum):
+        if self.battle.valid_switch(critPos, switchNum):
+            self.battle.add_action(critPos, switchNum, -1)
+            return 1
+        return 0
 
     def get_move_images(self):
         images, fonts = [], []
@@ -137,6 +159,8 @@ class BattleState(gamestate.GameState):
             images.append((self.battleImgs['redbox'], (x, x+0.15, y, y+0.11)))
             fonts.append((name, (x+0.01,x+0.14, y+0.01, y+0.1)))
             x += 0.17
+        images.append((self.battleImgs['darkbluebox'], (0.73, 0.93, 0.8, 0.91)))
+        fonts.append(('switch', (0.74, 0.92, 0.81, 0.90)))
         return images, fonts
 
     def get_target_images(self):
@@ -150,6 +174,15 @@ class BattleState(gamestate.GameState):
         for i in range(4):
             images.append((self.battleImgs['targetbox'], boxPos[i]))
             fonts.append((names[i], fontPos[i]))
+        return images, fonts
+
+    def get_switch_images(self):
+        images, fonts = [], []
+        switchCrits = self.battle.get_switch_options()
+        x, y = 0.05, 0.8
+        for crit in switchCrits:
+            images.append((self.battleImgs['greenbox'], (x, x+0.15, y, y+0.11)))
+            fonts.append((crit.name, (x+0.01, x+0.14, y+0.01, y+0.1)))
         return images, fonts
 
     def get_critter_images(self):

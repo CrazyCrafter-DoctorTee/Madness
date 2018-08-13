@@ -4,7 +4,8 @@ class Fighter(object):
 
     def __init__(self, iomanager):
         self.iomanager = iomanager
-        self.critters = [critter.Critter('doge', iomanager, 5), critter.Critter('doge', iomanager, 5)]
+        self.critters = [critter.Critter('gato', iomanager, 5), critter.Critter('doge', iomanager, 5),
+                         critter.Critter('snek', iomanager, 5)]
         
     def get_start_critters(self):
         critters = []

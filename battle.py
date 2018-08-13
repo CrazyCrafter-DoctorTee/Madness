@@ -1,7 +1,5 @@
-import pygame
 import queue
-
-import aifighter
+import random
 
 class BattleInfo(object):
     
@@ -42,7 +40,7 @@ class BattleInfo(object):
                 targets.append(self.critters[i].name)
         return targets
         
-    def critter_death(self, critPos):
+    def critter_leave(self, critPos):
         self.critters[critPos] = None
         
     def critter_switch_options(self):
@@ -53,14 +51,17 @@ class BattleInfo(object):
                 options.append(c)
         return options
     
-    def perform_switch(self, critPos, crit):
-        for c in self.fighter.critters:
-            if c is crit:
-                self.critters[critPos] = crit
-                break
+    def perform_switch(self, critPos, newCrit):
+        self.critters[critPos] = self.critter_switch_options()[newCrit]
             
     def valid_critter(self, critPos):
         return self.critters[critPos] != None
+    
+    def valid_switch(self, critPos, switchNum):
+        if critPos == 0 or critPos == 1:
+            return switchNum < len(self.critter_switch_options())
+        else:
+            raise Exception('AI switch is not implemented')
     
     def determine_winner(self):
         fighterIsAlive = self.fighter.has_playable_critters()
@@ -107,7 +108,10 @@ class BattleInfo(object):
         
     def execute_action(self, action):
         defendResult = None
-        if self.critters[action[0]] != None:
+        if action[2] == -1:
+            self.perform_switch(action[0], action[1])
+            defendResult = (0, 'Switched', '')
+        elif self.critters[action[0]] != None:
             attacker = self.critters[action[0]]
             defendPos = self.get_defender(action[0], action[1])
             defender = self.critters[defendPos]
@@ -116,8 +120,22 @@ class BattleInfo(object):
             if defender != None:
                 defendResult = defender.defend(moveResult)
                 if 'DEAD' in defendResult[1]:
-                    self.critter_death(defendPos)
+                    self.critter_leave(defendPos)
         return defendResult
+
+
+    def get_ordered_turns(self, actionList):
+        temp = sorted(actionList, # sorted is stable, sort by spd then action priority
+                key=lambda x: self.critters[x[0]].get_speed()+random.uniform(0,1))
+        return sorted(temp, key=lambda x: 0 if x[2] == -1 else 1)
+        
+    def get_critter_spd_order(self):
+        aliveCritters = []
+        for c in self.critters:
+            if c != None:
+                aliveCritters.append(c)
+        return sorted(aliveCritters,
+                       key=lambda x: x.get_speed()+random.uniform(0,1))
 
 class BattleHandler(object):
     
@@ -134,6 +152,7 @@ class BattleHandler(object):
         if winner is None:
             self.turnActions = []
             self.turnInitialized = False
+            self.endInitialized = False
             return 0
         elif winner == 'fighter':
             return 1
@@ -146,7 +165,7 @@ class BattleHandler(object):
         
     def valid_move(self, critPos, move):
         moves = self.battleInfo.get_critter_moves(critPos)
-        if moves != None:
+        if move < 5:
             return move < len(moves)
         return False
     
@@ -158,20 +177,29 @@ class BattleHandler(object):
     def valid_critter(self, critPos):
         return self.battleInfo.valid_critter(critPos)
     
+    def valid_switch(self, critPos, switchNum):
+        return self.battleInfo.valid_switch(critPos, switchNum)
+    
     def add_action(self, critPos, target, move):
-        if self.valid_critter(critPos) and self.valid_target(critPos, target):
+        if move == -1:
+            self.turnActions.append((critPos, target, move))
+        elif self.valid_critter(critPos) and self.valid_target(critPos, target):
             self.turnActions.append((critPos, target, move))
         else:
             raise Exception('Invalid action added!')
     
     def next_step(self):
+        print('next step')
         if self.turnInitialized == False:
             self.initialize_turn()
         if not self.actionQueue.empty():
             self.nextAction = self.actionQueue.get(block=False)
+            
         turnStatus = self.battleInfo.execute_action(self.nextAction)
-        while turnStatus == None:
+        while turnStatus == None and not self.actionQueue.empty():
             turnStatus = self.battleInfo.execute_action(self.nextAction)
+            self.nextAction = self.actionQueue.get(block=False)
+        self.logMsg = self.determine_log_msg(turnStatus)
         
         winner = self.battleInfo.determine_winner()
         if winner == 'fighter':
@@ -185,13 +213,51 @@ class BattleHandler(object):
         else:
             return 0
         
+    def end_action(self):
+        status = None
+        if self.endInitialized == False:
+            self.initialize_end()
+        if not self.actionQueue.empty():
+            self.nextCritter = self.critterQueue.get(block=False)
+            status = self.nextCritter.update_status()
+        while status == None and not self.critterQueue.empty():
+            self.nextCritter = self.critterQueue.get(block=False)
+            status = self.nextCritter.update_status()
+            
+        winner = self.battleInfo.determine_winner()
+        if winner == 'fighter':
+            return 2
+        elif winner == 'ai':
+            return 3
+        elif winner == 'both':
+            return 4
+        elif self.actionQueue.empty():
+            self.end_turn()
+            return 1
+        else:
+            return 0
+    
+    def determine_log_msg(self, status):
+        pass # TODO: critters should always pass subscriptable
+        #if status[1] == 'brn':
+        #    pass
+    
     def initialize_turn(self):
+        print('initializing...')
         self.actionQueue = queue.Queue()
         self.nextAction = None
         self.turnActions.extend(self.aiFighter.get_actions(self.battleInfo.critters))
-        for a in self.turnActions:
+        for a in self.battleInfo.get_ordered_turns(self.turnActions):
+            print(a)
             self.actionQueue.put(a)
         self.turnInitialized = True
+        
+    def initialize_end(self):
+        self.critterQueue = queue.Queue()
+        self.nextAction = None
+        for c in self.battleInfo.get_critter_spd_order():
+            self.critterQueue.put(c)
+        self.endInitialized = True
     
     def get_critter_moves(self, critPos):
         return self.battleInfo.get_critter_moves(critPos)
@@ -204,3 +270,6 @@ class BattleHandler(object):
     
     def get_targets(self, critPos):
         return self.battleInfo.get_targets(critPos)
+    
+    def get_switch_options(self):
+        return self.battleInfo.critter_switch_options()

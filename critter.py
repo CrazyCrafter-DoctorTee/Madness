@@ -183,21 +183,25 @@ class Critter:
     def remove_status(self, statuses):
         self.status = [stat for stat in self.status if stat not in statuses]
 
-    def getspeed(self):
+    def get_speed(self):
         self.crunch_status()
         return self.spd * ((2 + self.status.count('spdup')) / (2 + self.status.count('spddn')))
 
     #update stats and deal with burn dmg and such at the end of turn
-    def update_status(self):
+    def update_status(self): # TODO: complete log messaging
+        result = []
         if len(self.status) > 0:
             removestats = []
             if self.status.count('fli') > 0:
                 self.status = [stat for stat in self.status if stat != 'fli']
+                # result.append('?') # TODO: what does this mean?
             for stat in self.status:
                 if stat == 'brn':
                     self.currenthp -= int(self.hp / 8)
+                    result.append('brn', '{} took damage from burn'.format(self.name))
                 elif stat == 'psn':
                     self.currenthp -= int(self.hp / 8)
+                    result.append('psn', '{} took damage from poison'.format(self.name))
                 elif stat == 'con':
                     if self.conctr == 0:
                         removestats.append('con')
@@ -213,6 +217,8 @@ class Critter:
         if self.currenthp < 1:
             self.currenthp = 0
             self.dead = True
+            return ('DEAD', '{} died'.format(self.name))
+        return result
             
     def get_move_list(self):
         return list(self.currentmoves.keys())
