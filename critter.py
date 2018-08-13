@@ -2,10 +2,10 @@ import iomanager
 import random
 
 class Critter:
-    statusnames = {'slp':'asleep', 'par':'paralyzed', 'brn':'burned','psn':'poisoned','con':'confused','frz':'frozen','recha':'recharging','strup':'stronger','strdn':'weaker','spdup':'faster','spddn':'slower',
-        'defup':'sturdier','defdn':'flimsier'}
+
     #requires at minimum the critter tag and io manager, also takes a level, dict of moves and their pp, and current hit points
     def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None, extraexp=0):
+        self.statusnames = {'slp':'asleep', 'par':'paralyzed', 'brn':'burned','psn':'poisoned','con':'confused','frz':'frozen','recha':'recharging','strup':'stronger','strdn':'weaker','spdup':'faster','spddn':'slower','defup':'sturdier','defdn':'flimsier'}
         self.ioman = ioman
         self.name = name
         statsin = self.ioman.get_data('critters', name, 'stats')
@@ -67,7 +67,7 @@ class Critter:
             for i in range(0, len(attack[1]), 2):
                 if random.randint(0, 99) < attack[1][i + 1]:
                     self.status.append(attack[1][i])
-                    extrainfo.append("{} is {}!".format(self.name, statusnames[attack[1][i]]))
+                    extrainfo.append("{} is {}!".format(self.name, self.statusnames[attack[1][i]]))
                     if attack[1][i] == 'slp':
                         self.slpctr = random.randint(1,7)
                     elif attack[1][i] == 'con':
@@ -108,8 +108,7 @@ class Critter:
         move = self.get_move_by_num(moveNum)
         movedict = self.ioman.get_data('moves', move)
         status = []
-        addedstatus = []
-        info = ''
+        extrainfo = []
         damage = movedict['dmg'] * self.atk * ((2 + self.status.count('dmgup')) / (2 + self.status.count('dmgdn')))
         #check to make sure attack can be executed:
         if self.dead:
@@ -148,7 +147,7 @@ class Critter:
             for i in range(0, len(movedict['selfstatus']), 2):
                 if random.randint(0, 99) < movedict['selfstatus'][i + 1]:
                     self.status.append(movedict['selfstatus'][i])
-                    extrainfo.append("{} is {}!".format(self.name, statusnames[attack[1][i]]))
+                    extrainfo.append("{} is {}!".format(self.name, self.statusnames[attack[1][i]]))
                     if movedict['selfstatus'][i] == 'recha':
                         self.recctr = 2
             self.crunch_status()
