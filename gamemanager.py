@@ -20,11 +20,11 @@ class GameManager(object):
         self.state = 'map'
 
     def next_frame(self):
-        state = self.gameStates[self.state].process_input()
-        self.gameStates[self.state].make_actions()
+        self.gameStates[self.state].process_input()
+        self.newstate = self.gameStates[self.state].make_actions()
         self.gameStates[self.state].draw()
-        if state != self.state:
-            self.state = state
+        if self.newstate != self.state:
+            self.state = self.newstate
             if self.state == 'battle':
                 self.gameStates['battle'] = battlestate.BattleState(self.screen, self.screenDims, self.ioManager, self.fighter)
 

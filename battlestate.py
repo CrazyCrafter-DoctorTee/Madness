@@ -23,6 +23,7 @@ class BattleState(gamestate.GameState):
     def __init__(self, screen, screenDims, ioManager, fighter):
         self.screen = screen
         self.screenDims = screenDims
+        self.battleover = False
         self.ioManager = ioManager
         self.battleImgs = ioManager.get_data('battles', 'images')
         self.battleImgs[None] = self.battleImgs['done']
@@ -60,23 +61,22 @@ class BattleState(gamestate.GameState):
             if event.type == pygame.QUIT:
                 return None
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_m: # TODO: remove when debugging is done
-                    return 'map'
                 if event.key in self.keyMapping:
                     returnCode = self.stepFuncs[self.step[0]](self.step[1], self.keyMapping[event.key]-1)
                     if returnCode == 1:
                         self.step = self.determine_next_step()
                     elif returnCode == 2 or returnCode == 3 or returnCode == 4:
-                        return 'map'
+                        self.battleover = True
                     elif returnCode == 5:
                         self.step = ('switch', self.step[1])
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mpos = pygame.mouse.get_pos()
                 for button in self.buttons:
                     if button.update(mpos[0],mpos[1]) != 0:
+                        pass
                         #deal with buttons
         return 'battle'
-
+    
     def draw(self):
         images, fonts = [[self.battleImgs['default'], (0, 1, 0, 1)]], []
         if self.step[0] == 'move':
@@ -101,7 +101,13 @@ class BattleState(gamestate.GameState):
         pygame.display.flip()
 
     def make_actions(self):
+<<<<<<< HEAD
         pass
+=======
+        if self.battleover:
+            return 'map'
+        return 'battle'
+>>>>>>> 0f0af3f45ce8e47f2dd9f4c2331bf6a90eb780d2
 
     def determine_next_step(self):
         if self.step[0] == 'target' or self.step[0] == 'switch':
