@@ -4,6 +4,7 @@ import random
 class Player(object):
     def __init__(self, gameMap, startDims=[0,0]):
         self.map = gameMap
+        ## TODO: find why this needs to be a copy for random encounters to work
         self.position = list(startDims)
         self.goalDims = startDims # where the player is headed, can you come up with a better name?
         self.currMove = None
