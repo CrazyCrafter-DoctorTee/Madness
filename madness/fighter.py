@@ -1,4 +1,4 @@
-import critter
+from madness import critter
 
 class Fighter(object):
 

@@ -1,10 +1,10 @@
 import pygame
 
-import gamestate
-import camera
-import player
-import enemy
-import gamemap
+from gamemanager import gamestate
+from madness import camera
+from madness import player
+from madness import enemy
+from madness import gamemap
 
 
 class MapState(gamestate.GameState):

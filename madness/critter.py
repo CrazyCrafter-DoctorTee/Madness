@@ -1,5 +1,6 @@
-import iomanager
 import random
+
+from gamemanager import iomanager
 
 class Critter:
 

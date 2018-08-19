@@ -3,10 +3,10 @@ import pygame
 import random
 import time
 
-import aifighter
-import battle
-import critter
-import gamestate
+from madness import aifighter
+from madness import battle
+from madness import critter
+from gamemanager import gamestate
 
 '''
 stepFuncs function error codes:

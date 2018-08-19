@@ -1,7 +1,7 @@
 import random
 
-import critter
-import battle
+from madness import critter
+from madness import battle
 
 class AIFighter(object):
 

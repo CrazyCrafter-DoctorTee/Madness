@@ -1,9 +1,11 @@
 import configparser
+import os
 
 class IOManager(object):
 
     def __init__(self, configFile):
         self.masterConfig = configparser.ConfigParser()
+        print(os.path.abspath(configFile))
         self.masterConfig.read(configFile)
         self.data = self.parse_file(self.masterConfig)
 
@@ -16,6 +18,7 @@ class IOManager(object):
         if 'config' in data.keys():
            for name, filename in data['config'].items():
                newConfig = configparser.ConfigParser()
+               print(filename)
                newConfig.read(filename)
                data[name] = self.parse_file(newConfig)
         return data
@@ -34,6 +37,7 @@ class IOManager(object):
 
     def get_data(self, *sections):
         # TODO: right now, we don't need to parse floats. but will we ever?
+        print(self.data)
         subData = self.data
         for s in sections:
             subData = subData[s]

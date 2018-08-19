@@ -1,7 +1,6 @@
-import gamemanager
 import time
-#dank memes
-#import this
+
+from gamemanager import gamemanager
 
 if __name__ == '__main__':
 

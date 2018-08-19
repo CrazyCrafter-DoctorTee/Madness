@@ -1,4 +1,5 @@
 import pygame
+
 class Button:
     def __init__(self, keytype, x1, x2, y1, y2):
         sef.keytype = keytype

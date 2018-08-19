@@ -1,9 +1,9 @@
 import pygame
 
-import mapstate
-import iomanager
-import fighter
-import battlestate
+from gamemanager import iomanager
+from madness import mapstate
+from madness import fighter
+from madness import battlestate
 
 class GameManager(object):
     def __init__(self):
