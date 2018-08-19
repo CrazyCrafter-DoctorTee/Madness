@@ -5,7 +5,7 @@ class GameMap(object):
 
     def generate_template(self, filename):
         lines = []
-        self.tiles = []
+        self.tiles = [] # stores tiles row by col
         with open(filename, 'r') as f:
            for line in f:
                lines.append(line)
@@ -27,8 +27,8 @@ class GameMap(object):
         offsetX = startCords[0] % self.tileDims[0]
         offsetY = startCords[1] % self.tileDims[1]
         mapTiles = []
-        for i in range(x1, x2+1):
-            mapTiles.append(self.tiles[i][y1:y2+1])
+        for i in range(y1, y2+1):
+            mapTiles.append(self.tiles[i][x1:x2+1])
         return mapTiles, (offsetX, offsetY), self.tileDims
 
     def impassable(self, x, y):
