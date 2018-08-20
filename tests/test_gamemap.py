@@ -1,8 +1,14 @@
+import os
+import pytest
 import sys
+from unittest.mock import patch
 
 sys.path.append('..')
 
-import gamemap
+from madness import gamemap
+
+def setup_module(module):
+    os.chdir(os.path.dirname(__file__))
 
 def test_init():
     gameMap = gamemap.GameMap('largemap.map', (32, 32))
@@ -54,3 +60,18 @@ def test_impassable():
     assert gameMap.impassable(5, 0) == True
     assert gameMap.impassable(4, 5) == False
     assert gameMap.impassable(5, 5) == True
+
+@patch.object(gamemap.GameMap, 'impassable')
+def test_get_movement(impassableMock):
+    gameMap = gamemap.GameMap('smallmap.map', (32, 32))
+    impassableMock.return_value = False
+    assert gameMap.get_movement((0, 0), 'l') == 0
+    assert gameMap.get_movement((0, 0), 'u') == 0
+    assert gameMap.get_movement((0, 0), 'd') == 32
+    assert gameMap.get_movement((0, 0), 'r') == 32
+    
+    assert gameMap.get_movement((1, 1), 'l') == 0
+    assert gameMap.get_movement((32, 32), 'u') == -32
+    impassableMock.return_value = True
+    assert gameMap.get_movement((1, 1), 'd') == 0
+    assert gameMap.get_movement((1, 1), 'r') == 0

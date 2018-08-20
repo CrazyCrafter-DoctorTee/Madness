@@ -1,3 +1,5 @@
+# TODO: is image used elsewhere, or can we get rid of it?
+
 import random
 import time
 
@@ -5,14 +7,13 @@ class Enemy(object):
     def __init__(self, image, gameMap, startCords):
         self.image = image
         self.map = gameMap
-        self.cords = startCords
+        self.cords = list(startCords)
         self.lastMove = time.time()
 
     def move(self):
         if time.time() > self.lastMove + 0.6:
-            possibleMoves = ['l', 'r', 'u', 'd']
-            for i in range(16): # 1% when one possible move
-                choice = random.choice(possibleMoves)
+            for i in range(16): # 1% chance of not moving when one possible move
+                choice = random.choice(['l', 'r', 'u', 'd'])
                 dist = self.map.get_movement(self.cords, choice)
                 if dist != 0:
                     if  choice == 'l' or choice == 'r':

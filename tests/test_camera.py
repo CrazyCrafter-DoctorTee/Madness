@@ -2,9 +2,9 @@ import sys
 
 sys.path.append('..')
 
-import camera
+from madness import camera
 
-def test_ctor():
+def test_init():
     cam = camera.Camera((764, 1280), (4064, 4064))
     assert cam.screenDims == (764, 1280)
     assert cam.maxDims == (4064, 4064)

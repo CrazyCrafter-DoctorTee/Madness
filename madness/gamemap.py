@@ -36,9 +36,10 @@ class GameMap(object):
             return True
         return False
 
-    def get_movement(self, cords, move): # TODO: can we clean this up?
+    def get_movement(self, cords, move):
         tileX, tileY = cords[0]//self.tileDims[0], cords[1]//self.tileDims[1]
         x, y = cords
+        print(self.impassable(tileX-1, tileY))
         if move == 'l':
             if tileX <= 0 or self.impassable(tileX-1, tileY):
                 return 0

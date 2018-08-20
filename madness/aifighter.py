@@ -1,3 +1,5 @@
+# TODO: Should we have this class inherit from fighter? It uses all the functions
+# fighter does, which is only two.
 import random
 
 from madness import critter
@@ -6,7 +8,7 @@ from madness import battle
 class AIFighter(object):
 
     def __init__(self, critters=[]):
-        self.critters = critters
+        self.critters = list(critters)
 
     def get_actions(self, critters):
         myCritters = []
