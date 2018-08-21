@@ -6,6 +6,7 @@ import time
 from madness import aifighter
 from madness import battle
 from madness import critter
+from gamemanager import button
 from gamemanager import gamestate
 
 '''
@@ -31,6 +32,7 @@ class BattleState(gamestate.GameState):
         self.critterImgs = self.create_images(ioManager.get_data('critters', 'images'))
         aiFighter = aifighter.AIFighter(self.generate_ai_critters())
         self.battle = battle.BattleHandler(fighter, aiFighter)
+        self.buttons = []
         self.print_colors()
         self.step = ('move', 0)
         self.stepFuncs = {'move' : self.select_move,
@@ -65,18 +67,20 @@ class BattleState(gamestate.GameState):
                     returnCode = self.stepFuncs[self.step[0]](self.step[1], self.keyMapping[event.key]-1)
                     if returnCode == 1:
                         self.step = self.determine_next_step()
+                        self.buttons = self.get_buttons()
                     elif returnCode == 2 or returnCode == 3 or returnCode == 4:
                         self.battleover = True
                     elif returnCode == 5:
                         self.step = ('switch', self.step[1])
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mpos = pygame.mouse.get_pos()
-                for button in self.buttons:
-                    bu = button.update(mpos[0],mpos[1])
-                    if bu != 0:
-                        returnCode = self.stepFuncs[self.step[0]](self.step[1], bu-1)
+                for b in self.buttons:
+                    key = b.update(mpos[0],mpos[1])
+                    if key != 0:
+                        returnCode = self.stepFuncs[self.step[0]](self.step[1], key-1)
                         if returnCode == 1:
                             self.step = self.determine_next_step()
+                            self.buttons = self.get_buttons()
                         elif returnCode == 2 or returnCode == 3 or returnCode == 4:
                             self.battleover = True
                         elif returnCode == 5:
@@ -85,18 +89,6 @@ class BattleState(gamestate.GameState):
 
     def draw(self):
         images, fonts = [[self.battleImgs['default'], (0, 1, 0, 1)]], []
-        if self.step[0] == 'move':
-            moveImgs, moveFonts = self.get_move_images()
-            images.extend(moveImgs)
-            fonts.extend(moveFonts)
-        elif self.step[0] == 'target':
-            targetImgs, targetFonts = self.get_target_images()
-            images.extend(targetImgs)
-            fonts.extend(targetFonts)
-        elif self.step[0] == 'switch':
-            switchImages, switchFonts = self.get_switch_images()
-            images.extend(switchImages)
-            fonts.extend(switchFonts)
         critterImgs, critterFonts = self.get_critter_images()
         images.extend(critterImgs)
         fonts.extend(critterFonts)
@@ -105,6 +97,10 @@ class BattleState(gamestate.GameState):
             self.load_image(i, pos)
         for i, pos in fonts:
             self.print_words(i, pos)
+        for b in self.buttons:
+            imgInfo, fontInfo = b.get_drawing_info()
+            self.load_image(imgInfo[0], imgInfo[1])
+            self.print_words(fontInfo[0], fontInfo[1])
         pygame.display.flip()
 
     def make_actions(self):
@@ -165,40 +161,49 @@ class BattleState(gamestate.GameState):
             return 1
         return 0
 
-    def get_move_images(self):
-        images, fonts = [], []
-        moves = self.battle.get_critter_moves(self.step[1])
-        x, y = 0.05, 0.8
-        for name in moves:
-            images.append((self.battleImgs['redbox'], (x, x+0.15, y, y+0.11)))
-            fonts.append((name, (x+0.01,x+0.14, y+0.01, y+0.1)))
-            x += 0.17
-        images.append((self.battleImgs['darkbluebox'], (0.73, 0.93, 0.8, 0.91)))
-        fonts.append(('switch', (0.74, 0.92, 0.81, 0.90)))
-        return images, fonts
+    def get_buttons(self):
+        phase, actionCrit = self.step
+        if phase == 'move':
+            return self.get_move_buttons(actionCrit)
+        elif phase == 'target':
+            return self.get_target_buttons(actionCrit)
+        elif phase == 'switch':
+            return self.get_switch_buttons()
+        else:
+            return []
 
-    def get_target_images(self):
+    def get_move_buttons(self, actionCrit):
+        buttons = []
+        moves = self.battle.get_critter_moves(actionCrit)
+        x, y = 0.05, 0.8
+        for i in range(len(moves)):
+            buttons.append(button.Button(self.battleImgs['redbox'], moves[i],
+                                         (x, x+0.15, y, y+0.11), i+1))
+            x += 0.17
+        buttons.append(button.Button(self.battleImgs['darkbluebox'], 'switch',
+                                     (0.73, 0.93, 0.8, 0.91), 5))
+        return buttons
+
+    def get_target_buttons(self, actionCrit):
+        buttons = []
         boxPos = [(0.04, 0.19, 0.60, 0.75), (0.04, 0.19, 0.77, 0.92),
                   (0.21, 0.36, 0.60, 0.75), (0.21, 0.36, 0.77, 0.92)]
-        fontPos = [(0.05, 0.18, 0.65, 0.70), (0.05, 0.18, 0.82, 0.87),
-                   (0.22, 0.35, 0.65, 0.70), (0.22, 0.35, 0.82, 0.87)]
-        names = self.battle.get_targets(self.step[1])
-        images, fonts = [], []
-        fonts = []
+        names = self.battle.get_targets(actionCrit)
         for i in range(4):
-            images.append((self.battleImgs['targetbox'], boxPos[i]))
-            fonts.append((names[i], fontPos[i]))
-        return images, fonts
+            buttons.append(button.Button(self.battleImgs['targetbox'],
+                        names[i], boxPos[i], i+1))
+        return buttons
 
-    def get_switch_images(self):
-        images, fonts = [], []
+    def get_switch_buttons(self):
+        buttons = []
         switchCrits = self.battle.get_switch_options()
         x, y = 0.05, 0.8
-        for crit in switchCrits:
-            images.append((self.battleImgs['greenbox'], (x, x+0.15, y, y+0.11)))
-            fonts.append((crit.name, (x+0.01, x+0.14, y+0.01, y+0.1)))
-        return images, fonts
-
+        for i in range(4):
+            buttons.append(button.Button(self.battleImgs['greenbox'], switchCrits[i].name,
+                                         (x, x+0.15, y, y+0.11), i+1))
+            x += 0.17
+        return buttons
+    
     def get_critter_images(self):
         crits = self.battle.get_critters()
         hps = self.battle.get_critter_hps()

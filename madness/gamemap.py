@@ -5,7 +5,6 @@ class GameMap(object):
 
     def generate_template(self, filename):
         lines = []
-        self.tiles = [] # stores tiles row by col
         with open(filename, 'r') as f:
            for line in f:
                lines.append(line)
@@ -13,8 +12,14 @@ class GameMap(object):
         maxX = self.dims[0]*self.tileDims[0] - self.tileDims[0]
         maxY = self.dims[1]*self.tileDims[1] - self.tileDims[1]
         self.maxDims = (maxX, maxY)
+        inverseTiles = []
         for i in range(1, self.dims[0]+1):
-            self.tiles.append(lines[i].split())
+            inverseTiles.append(lines[i].split())
+        self.tiles = [[] for _ in range(len(inverseTiles[0]))]
+        for i in range(len(inverseTiles)):
+            for j in range(len(inverseTiles[0])):
+                self.tiles[i].append(inverseTiles[j][i])
+        
 
     def get_tile_dims(self, startX, startY, screenDims): # TODO: rename to get_tile_print_range
         x1, y1 = startX//self.tileDims[0], startY//self.tileDims[1]
@@ -26,9 +31,10 @@ class GameMap(object):
         x1, x2, y1, y2 = self.get_tile_dims(startCords[0], startCords[1], screenDims)
         offsetX = startCords[0] % self.tileDims[0]
         offsetY = startCords[1] % self.tileDims[1]
-        mapTiles = []
-        for i in range(y1, y2+1):
-            mapTiles.append(self.tiles[i][x1:x2+1])
+        mapTiles = [[] for _ in range(x1, x2+1)]
+        for i in range(x1, x2+1):
+            for j in range(y1, y2+1):
+                mapTiles[i-x1].append(self.tiles[i][j])
         return mapTiles, (offsetX, offsetY), self.tileDims
 
     def impassable(self, x, y):

@@ -48,7 +48,7 @@ class MapState(gamestate.GameState):
         nextstate = 'map'
         if self.tick == 0:
             nextstate = self.player.move()
-            self.enemy.move()
+            #self.enemy.move()
             #Frame divider
             self.tick = 2
         else:

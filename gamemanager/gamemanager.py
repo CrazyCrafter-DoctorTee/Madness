@@ -31,7 +31,7 @@ class GameManager(object):
     def draw(self):
         self.maps['start'].draw(self.screen, self.camera.offset)
         self.player.draw(self.screen, self.camera.offset)
-        self.enemy.draw(self.screen, self.camera.offset)
+        #self.enemy.draw(self.screen, self.camera.offset)
         pygame.display.flip()
 
     def close(self):

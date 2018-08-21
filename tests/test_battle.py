@@ -239,6 +239,8 @@ def test_battle_handler_init():
     assert handler.turnActions == []
     assert handler.turnInitialized == False
     assert handler.endInitialized == False
+    assert handler.logMsg == ''
+    assert handler.logQueue.empty() == True
 
 def test_end_turn():
     handler = create_handler()
@@ -251,6 +253,7 @@ def test_end_turn():
     assert handler.turnInitialized == False
     assert handler.endInitialized == False
     assert handler.logMsg == ''
+    assert handler.logQueue.empty() == True
     
 def test_valid_move():
     handler = create_handler()

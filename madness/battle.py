@@ -116,7 +116,7 @@ class BattleInfo(object):
             return defPos
 
     def execute_action(self, action):
-        defendResult = None
+        defendResult = []
         if action[2] == -1:
             self.perform_switch(action[0], action[1])
             defendResult = (0, 'Switched', '')
@@ -125,16 +125,21 @@ class BattleInfo(object):
             defendPos = self.get_defender(action[0], action[1])
             defender = self.critters[defendPos]
             move = action[2]
+            defendResult.append('{} attacked {} with {}'.format(
+                    attacker.name, defender.name, move))
             moveResult = attacker.attack(move)
             if defender != None:
-                defendResult = defender.defend(moveResult)
+                for msg in defender.defend(moveResult):
+                    defendResult.append(msg)
                 if defender.dead:
                     self.critter_leave(defendPos)
         return defendResult
 
 
     def get_ordered_turns(self, actionList):
-        temp = sorted(actionList, # sorted is stable, sort by spd then action priority
+        # sorted is stable, will be sorted in reverse order of original sort,
+        # so return will be ordered by action priority, then speed
+        temp = sorted(actionList,
                 key=lambda x: self.critters[x[0]].get_speed()+random.uniform(0,1),
                 reverse=True)
         return sorted(temp, key=lambda x: 0 if x[2] == -1 else 1)
@@ -164,6 +169,7 @@ class BattleHandler(object):
         self.turnInitialized = False
         self.endInitialized = False
         self.logMsg = ''
+        self.logQueue = queue.Queue()
 
     def valid_move(self, critPos, move):
         moves = self.battleInfo.get_critter_moves(critPos)
@@ -208,6 +214,9 @@ class BattleHandler(object):
     def next_step(self):
         if self.turnInitialized == False:
             self.initialize_turn()
+        if self.logQueue.empty() == False:
+            self.logMsg = self.logQueue.get(block=False)
+            return
         turnStatus = None
         while turnStatus == None and not self.actionQueue.empty():
             self.nextAction = self.actionQueue.get(block=False)
@@ -215,7 +224,8 @@ class BattleHandler(object):
         if turnStatus == None:
             self.logMsg = ''
         else:
-            self.logMsg = turnStatus[-1] # TODO: make it print all msgs
+            for msg in turnStatus:
+                self.logQueue.put(msg)
         return self.get_battle_return_status()
 
     def end_action(self):
@@ -229,7 +239,7 @@ class BattleHandler(object):
         if status == None:
             self.logMsg = ''
         else:
-            self.logMsg = status[2]
+            self.logMsg = status[-1]
         return self.get_battle_return_status()
     
     def initialize_turn(self):
