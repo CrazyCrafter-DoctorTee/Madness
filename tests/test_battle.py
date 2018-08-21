@@ -245,10 +245,12 @@ def test_end_turn():
     handler.turnActions = ['action1']
     handler.turnInitialized = True
     handler.endInitialized = True
+    handler.logMsg = 'message'
     handler.end_turn()
     assert handler.turnActions == []
     assert handler.turnInitialized == False
     assert handler.endInitialized == False
+    assert handler.logMsg == ''
     
 def test_valid_move():
     handler = create_handler()
@@ -336,7 +338,7 @@ def test_next_step(returnMock, initTurnMock):
     handler = create_handler()
     handler.turnInitialized = False
     battleInfoMock = mock.Mock()
-    battleInfoMock.execute_action.side_effect = [None, None, 'status']
+    battleInfoMock.execute_action.side_effect = [None, None, (40, 'status', 'msg')]
     handler.battleInfo = battleInfoMock
     queueMock = mock.Mock()
     queueMock.get.side_effect = ['action0', 'action1', 'action2']
@@ -344,6 +346,7 @@ def test_next_step(returnMock, initTurnMock):
     handler.actionQueue = queueMock
     returnMock.return_value = 'battle status'
     assert handler.next_step() == 'battle status'
+    assert handler.logMsg == 'msg'
     battleInfoMock.execute_action.assert_any_call('action0')
     battleInfoMock.execute_action.assert_any_call('action1')
     battleInfoMock.execute_action.assert_called_with('action2')#should be last call
@@ -351,6 +354,7 @@ def test_next_step(returnMock, initTurnMock):
     
     queueMock.empty.return_value = True
     assert handler.next_step() == 'battle status'
+    assert handler.logMsg == ''
 
 @patch.object(battle.BattleHandler, 'initialize_end')
 @patch.object(battle.BattleHandler, 'get_battle_return_status')
@@ -359,18 +363,20 @@ def test_end_action(returnMock, initEndMock):
     crit0Mock = mock.Mock()
     crit0Mock.update_status.return_value = None
     crit1Mock = mock.Mock()
-    crit1Mock.update_status.return_value = 'status'
+    crit1Mock.update_status.return_value = (40, 'status', 'msg')
     handler.critterQueue = mock.Mock()
     handler.critterQueue.get.side_effect = [crit0Mock, crit1Mock]
     handler.critterQueue.empty.return_value = False
     returnMock.return_value = 'battle status'
     assert handler.end_action() == 'battle status'
+    assert handler.logMsg == 'msg'
     crit0Mock.update_status.assert_called_once()
     crit1Mock.update_status.assert_called_once()
-    initEndMock.assert_called_once
+    initEndMock.assert_called_once()
     
     handler.critterQueue.empty.return_value = True
     assert handler.end_action() == 'battle status'
+    assert handler.logMsg == ''
     
 def test_initialize_turn():
     handler = create_handler()

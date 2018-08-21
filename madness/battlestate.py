@@ -74,7 +74,7 @@ class BattleState(gamestate.GameState):
                 for button in self.buttons:
                     bu = button.update(mpos[0],mpos[1])
                     if bu != 0:
-                        returncode = self.stepFuncs[self.step[0]](self.step[1], bu-1)
+                        returnCode = self.stepFuncs[self.step[0]](self.step[1], bu-1)
                         if returnCode == 1:
                             self.step = self.determine_next_step()
                         elif returnCode == 2 or returnCode == 3 or returnCode == 4:
@@ -100,6 +100,7 @@ class BattleState(gamestate.GameState):
         critterImgs, critterFonts = self.get_critter_images()
         images.extend(critterImgs)
         fonts.extend(critterFonts)
+        fonts.append((self.battle.logMsg,(0.1, 0.9, 0.8, 0.9)))
         for i, pos in images:
             self.load_image(i, pos)
         for i, pos in fonts:
@@ -125,7 +126,7 @@ class BattleState(gamestate.GameState):
             elif self.battle.valid_critter(1):
                 return ('move', 1)
             else:
-                raise Exception('Turn ended wit no usable critters')
+                raise Exception('Turn ended with no usable critters')
         elif self.step[0] == 'turn':
             return ('end', 2)
         else:

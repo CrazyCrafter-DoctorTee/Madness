@@ -163,6 +163,7 @@ class BattleHandler(object):
         self.turnActions = []
         self.turnInitialized = False
         self.endInitialized = False
+        self.logMsg = ''
 
     def valid_move(self, critPos, move):
         moves = self.battleInfo.get_critter_moves(critPos)
@@ -211,6 +212,10 @@ class BattleHandler(object):
         while turnStatus == None and not self.actionQueue.empty():
             self.nextAction = self.actionQueue.get(block=False)
             turnStatus = self.battleInfo.execute_action(self.nextAction)
+        if turnStatus == None:
+            self.logMsg = ''
+        else:
+            self.logMsg = turnStatus[-1] # TODO: make it print all msgs
         return self.get_battle_return_status()
 
     def end_action(self):
@@ -221,6 +226,10 @@ class BattleHandler(object):
         while status == None and not self.critterQueue.empty():
             self.nextCritter = self.critterQueue.get(block=False)
             status = self.nextCritter.update_status()
+        if status == None:
+            self.logMsg = ''
+        else:
+            self.logMsg = status[2]
         return self.get_battle_return_status()
     
     def initialize_turn(self):
