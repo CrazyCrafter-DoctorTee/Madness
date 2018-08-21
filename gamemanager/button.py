@@ -9,10 +9,10 @@ class Button:
         self.y2 = dims[3]
 
     def update(self, mx, my):
-        if self.x1 < mx < self.x2:
-            if self.y1 < my < self.y2:
+        if self.x1 <= mx <= self.x2:
+            if self.y1 <= my <= self.y2:
                 return self.keytype
-        return 0
+        return None
 
     def get_drawing_info(self):
         image = (self.image, (self.x1, self.x2, self.y1, self.y2))

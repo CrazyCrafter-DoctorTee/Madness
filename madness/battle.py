@@ -216,7 +216,7 @@ class BattleHandler(object):
             self.initialize_turn()
         if self.logQueue.empty() == False:
             self.logMsg = self.logQueue.get(block=False)
-            return
+            return self.get_battle_return_status()
         turnStatus = None
         while turnStatus == None and not self.actionQueue.empty():
             self.nextAction = self.actionQueue.get(block=False)
@@ -226,6 +226,7 @@ class BattleHandler(object):
         else:
             for msg in turnStatus:
                 self.logQueue.put(msg)
+            self.logMsg = self.logQueue.get(block=True)
         return self.get_battle_return_status()
 
     def end_action(self):

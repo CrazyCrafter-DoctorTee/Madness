@@ -177,9 +177,9 @@ def test_execute_action():
     assert battleInfo.critters == [crit0Mock, crit1Mock, crit2Mock, None]
     
     crit0Mock.attack.return_value = 'attack info'
-    crit2Mock.defend.return_value = 'defend info'
+    crit2Mock.defend.return_value = ['info0', 'info1']
     crit2Mock.dead = True
-    assert battleInfo.execute_action((0, 3, 'move')) == 'defend info'
+    assert len(battleInfo.execute_action((0, 3, 'move'))) == 3
     crit0Mock.attack.assert_called_with('move')
     crit2Mock.defend.assert_called_with('attack info')
     assert battleInfo.critters == [crit0Mock, crit1Mock, None, None]
@@ -337,11 +337,11 @@ def test_get_battle_return_status():
 
 @patch.object(battle.BattleHandler, 'initialize_turn')
 @patch.object(battle.BattleHandler, 'get_battle_return_status')
-def test_next_step(returnMock, initTurnMock):
+def test_next_step(returnMock, initTurnMock): # TODO: test contents of queue
     handler = create_handler()
     handler.turnInitialized = False
     battleInfoMock = mock.Mock()
-    battleInfoMock.execute_action.side_effect = [None, None, (40, 'status', 'msg')]
+    battleInfoMock.execute_action.side_effect = [None, None, ['attacking', 'status']]
     handler.battleInfo = battleInfoMock
     queueMock = mock.Mock()
     queueMock.get.side_effect = ['action0', 'action1', 'action2']
@@ -349,16 +349,19 @@ def test_next_step(returnMock, initTurnMock):
     handler.actionQueue = queueMock
     returnMock.return_value = 'battle status'
     assert handler.next_step() == 'battle status'
-    assert handler.logMsg == 'msg'
+    assert handler.logMsg == 'attacking'
     battleInfoMock.execute_action.assert_any_call('action0')
     battleInfoMock.execute_action.assert_any_call('action1')
     battleInfoMock.execute_action.assert_called_with('action2')#should be last call
     initTurnMock.assert_called_once()
     
+    assert handler.next_step() == 'battle status'
+    assert handler.logMsg == 'status'
+
     queueMock.empty.return_value = True
     assert handler.next_step() == 'battle status'
     assert handler.logMsg == ''
-
+    
 @patch.object(battle.BattleHandler, 'initialize_end')
 @patch.object(battle.BattleHandler, 'get_battle_return_status')
 def test_end_action(returnMock, initEndMock):
