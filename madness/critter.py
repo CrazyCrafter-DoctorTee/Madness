@@ -7,8 +7,8 @@ class Critter:
     #requires at minimum the critter tag and io manager, also takes a level, dict of moves and their pp, and current hit points
     def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None, extraexp=0):
         self.statusnames = {'slp':'asleep', 'par':'paralyzed', 'brn':'burned','psn':'poisoned',
-                            'con':'confused','frz':'frozen','recha':'recharging','strup':'stronger',
-                            'strdn':'weaker','spdup':'faster','spddn':'slower','defup':'better at defending',
+                            'con':'confused','frz':'frozen','recha':'recharging','atkup':'stronger',
+                            'atkdn':'weaker','spdup':'faster','spddn':'slower','defup':'better at defending',
                             'defdn':'worse at defending','atkup':'more powerful','atkdn':'less powerful', 'fli':'too shook to move'}
         self.ioman = ioman
         self.name = name
