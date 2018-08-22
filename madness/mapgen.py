@@ -63,7 +63,7 @@ class Mapgenerator:
         points.append((self.SIZE - 1, random.randint(bottom, top)))
         print(points)
         #now traverse from point to point:
-        draw4connectedLine(matrix, points, 'r')
+        self.draw4connectedLine(matrix, points, 'r')
 
     #draws a four-connectd line through a list of points
     def draw4connectedLine(self, matrix, points, char):
@@ -131,8 +131,8 @@ class Mapgenerator:
         matrix[random.randint(self.SIZE / 2, self.SIZE - 1)][random.randint(self.SIZE / 2, self.SIZE - 1)] = 'x'
 
     def generate_map(self):
-        matero = genBasicMatrix()
-        makeRiver(matero, 8)
-        randomPath(matero, 'p')
-        countEntries(matero)
+        matero = self.genBasicMatrix()
+        self.makeRiver(matero, 8)
+        self.randomPath(matero, 'p')
+        self.countEntries(matero)
         return matero
