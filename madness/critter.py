@@ -8,8 +8,8 @@ class Critter:
     def __init__(self, name, ioman, lvl=1, currentmoves=None, currenthp=None, extraexp=0):
         self.statusnames = {'slp':'asleep', 'par':'paralyzed', 'brn':'burned','psn':'poisoned',
                             'con':'confused','frz':'frozen','recha':'recharging','strup':'stronger',
-                            'strdn':'weaker','spdup':'faster','spddn':'slower','defup':'sturdier',
-                            'defdn':'flimsier','atkup':'more powerful','atkdn':'less powerful'}
+                            'strdn':'weaker','spdup':'faster','spddn':'slower','defup':'better at defending',
+                            'defdn':'worse at defending','atkup':'more powerful','atkdn':'less powerful', 'fli':'too shook to move'}
         self.ioman = ioman
         self.name = name
         statsin = self.ioman.get_data('critters', name, 'stats')
@@ -71,7 +71,7 @@ class Critter:
             for i in range(0, len(attack[1]), 2):
                 if random.randint(0, 99) < attack[1][i + 1]:
                     self.status.append(attack[1][i])
-                    extrainfo.append("{} is {}!".format(self.name, self.statusnames[attack[1][i]])) # TODO: key error 'fli'
+                    extrainfo.append("{} is {}!".format(self.name, self.statusnames[attack[1][i]]))
                     if attack[1][i] == 'slp':
                         self.slpctr = random.randint(1,7)
                     elif attack[1][i] == 'con':
