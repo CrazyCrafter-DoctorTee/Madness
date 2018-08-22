@@ -17,13 +17,10 @@ class MapState(gamestate.GameState):
         self.screenDims = pygame.display.get_surface().get_size()
         self.images = self.create_images(self.ioManager.get_data('images'))
         maps = self.ioManager.get_data('maps')
-        self.maps = {}
-        for name, attribs in maps.items():
-            self.maps[name] = gamemap.GameMap(attribs['filename'], attribs['tiledims'])
-        self.currMap = self.maps[self.ioManager.get_data('game', 'map', 'startmap')]
+        self.currMap = gamemap.GameMap()
         self.player = player.Player(self.currMap, self.ioManager.get_data('game', 'map', 'startdims'))
-        self.enemy = enemy.Enemy(self.images['character']['enemy'], self.maps['start'], [320, 320])
-        self.camera = camera.Camera(self.screenDims, self.maps['start'].maxDims)
+        self.enemy = enemy.Enemy(self.images['character']['enemy'], self.currMap, [320, 320])
+        self.camera = camera.Camera(self.screenDims, self.currMap.maxDims)
 
     def process_input(self):
         for event in pygame.event.get():

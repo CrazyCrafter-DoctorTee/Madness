@@ -9,7 +9,7 @@ class Mapgenerator:
         self.SIZE = size
 
     #generates default map with random fill generated from a weighted list
-    def genBasicMatrix():
+    def genBasicMatrix(self):
         matrix = []
         choiceList = []
         for i in range(28):
