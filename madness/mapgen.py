@@ -27,7 +27,7 @@ class Mapgenerator:
         return matrix
 
     #Outputs the map to file
-    def makemap(matrix):
+    def makemap(self,matrix):
         garbo = open("assets/map.map", "w")
         height = str(len(matrix))
         width = str(len(matrix[0]))
@@ -38,7 +38,7 @@ class Mapgenerator:
             garbo.write('\n')
 
     #draws a river across the map with a numper of random points to intersect
-    def makeRiver(matrix, midpoints):
+    def makeRiver(self, matrix, midpoints):
         #first generate our list of points, including the start and end
         points = []
         gapping = self.SIZE // (midpoints + 1)
@@ -66,7 +66,7 @@ class Mapgenerator:
         draw4connectedLine(matrix, points, 'r')
 
     #draws a four-connectd line through a list of points
-    def draw4connectedLine(matrix, points, char):
+    def draw4connectedLine(self, matrix, points, char):
         for i in range(len(points) - 1):
             x = points[i][0]
             y = points[i][1]
@@ -92,7 +92,7 @@ class Mapgenerator:
                     error = error2
 
     #generates a random walk of a tile on the map
-    def randomPath(matrix, tile):
+    def randomPath(self, matrix, tile):
         gary = True
         eecks = random.randint(0,self.SIZE - 1)
         wye = 0
@@ -118,7 +118,7 @@ class Mapgenerator:
             counter += 1
 
     #counts the number of each entry and prints them
-    def countEntries(matrix):
+    def countEntries(self, matrix):
         keys = {}
         for key in ('g','b','g','r','p','t'):
             keys[key] = 0
@@ -127,7 +127,10 @@ class Mapgenerator:
                 keys[y] += 1
         print(keys)
 
-    def generate_map():
+    def placeExit(self, matrix):
+        matrix[random.randint(self.SIZE / 2, self.SIZE - 1)][random.randint(self.SIZE / 2, self.SIZE - 1)] = 'x'
+
+    def generate_map(self):
         matero = genBasicMatrix()
         makeRiver(matero, 8)
         randomPath(matero, 'p')
