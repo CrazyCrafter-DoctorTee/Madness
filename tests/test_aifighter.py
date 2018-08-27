@@ -32,46 +32,27 @@ def test_get_actions(rangeMock, choiceMock):
     choiceMock.assert_called_with([0, 1])
     rangeMock.assert_any_call(4)
     rangeMock.assert_any_call(3)
-    
-def test_get_start_critters():
+
+@patch('random.randrange')    
+def test_do_switch(rangeMock):
     ai = aifighter.AIFighter()
-    assert ai.get_start_critters() == [None, None]
+    crit0Mock = mock.Mock()
+    crit0Mock.dead = False
+    crit1Mock = mock.Mock()
+    crit1Mock.dead = False
+    crit2Mock = mock.Mock()
+    crit2Mock.dead = True
+    crit3Mock = mock.Mock()
+    crit3Mock.dead = False
+    ai.critters = [crit0Mock, crit1Mock, crit2Mock, crit3Mock]
+    battleCrits = ['crit0', 'crit1', None, crit1Mock]
+    rangeMock.return_value = 1
+    assert ai.do_switch(battleCrits) == [crit3Mock]
+    rangeMock.assert_called_with(2)
     
-    crit0 = mock.Mock()
-    crit1 = mock.Mock()
-    crit2 = mock.Mock()
-    ai.critters = [crit0]
-    crit0.dead = False
-    assert ai.get_start_critters() == [crit0, None]
+    battleCrits = ['crit0', 'crit1', None, None]
+    rangeMock.return_value = 0
+    assert ai.do_switch(battleCrits) == [crit0Mock, crit1Mock]
     
-    crit0.dead = True
-    assert ai.get_start_critters() == [None, None]
-    
-    crit0.dead = False
-    crit1.dead = False
-    crit2.dead = False
-    ai.critters = [crit0, crit1, crit2]
-    assert ai.get_start_critters() == [crit0, crit1]
-    
-    crit1.dead = True
-    assert ai.get_start_critters() == [crit0, crit2]
-    
-    crit0.dead = True
-    assert ai.get_start_critters() == [crit2, None]
-    
-def test_has_playable_critters():
-    ai = aifighter.AIFighter()
-    assert ai.has_playable_critters() == False
-    
-    crit0 = mock.Mock()
-    crit1 = mock.Mock()
-    crit0.dead = False
-    ai.critters = [crit0]
-    assert ai.has_playable_critters() == True
-    
-    crit0.dead = True
-    assert ai.has_playable_critters() == False
-    
-    crit1.dead = False
-    ai.critters = [crit0, crit1]
-    assert ai.has_playable_critters() == True
+    battleCrits = [None, None, 'crit2', 'crit3']
+    assert ai.do_switch(battleCrits) == []

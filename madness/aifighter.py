@@ -1,11 +1,10 @@
-# TODO: Should we have this class inherit from fighter? It uses all the functions
-# fighter does, which is only two.
 import random
 
 from madness import critter
 from madness import battle
+from madness import fighter
 
-class AIFighter(object):
+class AIFighter(fighter.Fighter):
 
     def __init__(self, critters=[]):
         self.critters = list(critters)
@@ -23,19 +22,15 @@ class AIFighter(object):
             actions.append((crit, random.choice([0,1]), random.randrange(moves)))
         return actions
     
-    def get_start_critters(self):
-        critters = []
-        i = 0
-        while len(critters) < 2 and i < len(self.critters):
-            if not self.critters[i].dead:
-                critters.append(self.critters[i])
-            i += 1
-        while len(critters) < 2:
-            critters.append(None)
-        return critters
-     
-    def has_playable_critters(self):
+    def do_switch(self, battleCrits):
+        possibleCrits = []
+        newCrits = []
         for c in self.critters:
-            if not c.dead:
-                return True
-        return False
+            if c not in battleCrits and (not c.dead):
+                possibleCrits.append(c)
+        for i in range(2, 4):
+            if battleCrits[i] == None and len(possibleCrits) > 0:
+                critNum = random.randrange(len(possibleCrits))
+                newCrits.append(possibleCrits[critNum])
+                del possibleCrits[critNum]
+        return newCrits

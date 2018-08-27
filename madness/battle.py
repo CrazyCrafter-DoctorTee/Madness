@@ -152,24 +152,38 @@ class BattleInfo(object):
         return sorted(aliveCritters,
                        key=lambda x: x.get_speed()+random.uniform(0,1),
                        reverse=True)
+        
+    def do_ai_switch(self):
+        switchCrits = self.aiFighter.do_switch(self.critters)
+        if self.critters[2] == None and len(switchCrits) > 0:
+            self.critters[2] = switchCrits[0]
+            if self.critters[3] == None and len(switchCrits) > 1:
+                self.critters[3] = switchCrits[1]
+        elif self.critters[3] == None and len(switchCrits) > 0:
+            self.critters[3] = switchCrits[0]
+            
+    def check_end_turn_switch(self):
+        self.do_ai_switch()
+        switchInCrits = self.fighter.alive_critter_count()
+        emptySpots = self.critters[0:2].count(None)
+        return min(emptySpots, switchInCrits)
 
-# TODO: give up fighter/aifighter, so it's not in battle info, and handeler
+
 class BattleHandler(object):
 
     def __init__(self, fighter, aiFighter):
-        self.fighter = fighter
         self.aiFighter = aiFighter
-        critters = self.fighter.get_start_critters()
+        critters = fighter.get_start_critters()
         critters.extend(self.aiFighter.get_start_critters())
         self.battleInfo = BattleInfo(fighter, aiFighter, critters)
-        self.end_turn()
+        self.reset()
 
-    def end_turn(self):
+    def reset(self):
         self.turnActions = []
         self.turnInitialized = False
         self.endInitialized = False
         self.logMsg = ''
-        self.logQueue = queue.Queue()
+        self.logQueue = queue.Queue()        
 
     def valid_move(self, critPos, move):
         moves = self.battleInfo.get_critter_moves(critPos)
@@ -226,7 +240,8 @@ class BattleHandler(object):
         else:
             for msg in turnStatus:
                 self.logQueue.put(msg)
-            self.logMsg = self.logQueue.get(block=True)
+            if not self.logQueue.empty():
+                self.logMsg = self.logQueue.get(block=False)
         return self.get_battle_return_status()
 
     def end_action(self):
@@ -242,6 +257,10 @@ class BattleHandler(object):
         else:
             self.logMsg = status[-1]
         return self.get_battle_return_status()
+
+    def end_turn(self):
+        self.reset()
+        self.battleInfo.check_end_turn_switches()
     
     def initialize_turn(self):
         self.actionQueue = queue.Queue()

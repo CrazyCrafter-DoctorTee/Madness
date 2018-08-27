@@ -26,7 +26,6 @@ class GameState(object):
         height = 3 * (y2 - y1)
         size = int(height//5)
         wordFont = pygame.font.SysFont('Comic Sans MS', size) # :)
-        print(words)
         wordSurface = wordFont.render(words, 1, (255,255,255))
         self.screen.blit(wordSurface, (x1, y1))
 

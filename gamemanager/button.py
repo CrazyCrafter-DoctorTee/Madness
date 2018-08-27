@@ -1,8 +1,8 @@
 class Button:
-    def __init__(self, image, words, dims, keytype):
+    def __init__(self, image, words, dims, actionType):
         self.image = image
         self.words = words
-        self.keytype = keytype
+        self.keytype = actionType
         self.x1 = dims[0]
         self.x2 = dims[1]
         self.y1 = dims[2]

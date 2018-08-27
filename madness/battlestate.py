@@ -24,7 +24,7 @@ class BattleState(gamestate.GameState):
     def __init__(self, screen, screenDims, ioManager, fighter):
         self.screen = screen
         self.screenDims = screenDims
-        self.battleover = False
+        self.battleOver = False
         self.ioManager = ioManager
         self.battleImgs = ioManager.get_data('battles', 'images')
         self.battleImgs[None] = self.battleImgs['done']
@@ -35,6 +35,7 @@ class BattleState(gamestate.GameState):
         self.buttons = []
         self.print_colors()
         self.step = ('move', 0)
+        self.buttons = self.get_buttons()
         self.stepFuncs = {'move' : self.select_move,
                           'target' : self.select_target,
                           'turn' : self.run_turn,
@@ -64,27 +65,12 @@ class BattleState(gamestate.GameState):
                 return None
             if event.type == pygame.KEYDOWN:
                 if event.key in self.keyMapping:
-                    returnCode = self.stepFuncs[self.step[0]](self.step[1], self.keyMapping[event.key]-1)
-                    if returnCode == 1:
-                        self.step = self.determine_next_step()
-                        self.buttons = self.get_buttons()
-                    elif returnCode == 2 or returnCode == 3 or returnCode == 4:
-                        self.battleover = True
-                    elif returnCode == 5:
-                        self.step = ('switch', self.step[1])
+                    self.process_key_action(self.keyMapping[event.key]-1)
             if event.type == pygame.MOUSEBUTTONDOWN:
-                mpos = pygame.mouse.get_pos()
-                for b in self.buttons:
-                    key = b.update(mpos[0],mpos[1])
-                    if key != 0:
-                        returnCode = self.stepFuncs[self.step[0]](self.step[1], key-1)
-                        if returnCode == 1:
-                            self.step = self.determine_next_step()
-                            self.buttons = self.get_buttons()
-                        elif returnCode == 2 or returnCode == 3 or returnCode == 4:
-                            self.battleover = True
-                        elif returnCode == 5:
-                            self.step = ('switch', self.step[1])
+                mousePos = pygame.mouse.get_pos()
+                actionNum = self.get_button_action_type(mousePos)
+                if actionNum != None:
+                    self.process_key_action(actionNum)
         return 'battle'
 
     def draw(self):
@@ -103,8 +89,18 @@ class BattleState(gamestate.GameState):
             self.print_words(fontInfo[0], fontInfo[1])
         pygame.display.flip()
 
+    def process_key_action(self, actionNum):
+        returnCode = self.stepFuncs[self.step[0]](self.step[1], actionNum)
+        if returnCode == 1:
+            self.step = self.determine_next_step()
+            self.buttons = self.get_buttons()
+        elif 2 <= returnCode <= 4:
+            self.battleOver = True # TODO: create end battle scene
+        elif returnCode == 5:
+            self.step = ('switch', self.step[1])
+
     def make_actions(self):
-        if self.battleover:
+        if self.battleOver:
             return 'map'
         return 'battle'
 
@@ -161,6 +157,16 @@ class BattleState(gamestate.GameState):
             return 1
         return 0
 
+    def get_button_action_type(self, position):
+        x, y = position
+        xNorm, yNorm = x/self.screenDims[0], y/self.screenDims[1]
+        key = None
+        i = 0
+        while key == None and i < len(self.buttons):
+            key = self.buttons[i].update(xNorm, yNorm)
+            i += 1
+        return key
+
     def get_buttons(self):
         phase, actionCrit = self.step
         if phase == 'move':
@@ -176,7 +182,7 @@ class BattleState(gamestate.GameState):
         buttons = []
         moves = self.battle.get_critter_moves(actionCrit)
         x, y = 0.05, 0.8
-        for i in range(len(moves)):
+        for i in range(4):
             buttons.append(button.Button(self.battleImgs['redbox'], moves[i],
                                          (x, x+0.15, y, y+0.11), i+1))
             x += 0.17

@@ -1,3 +1,4 @@
+# TODO: fix bug where the leftCorner becomes negative when maxDims are less than screenDims
 class Camera(object):
 
     def __init__(self, screenDims, maxDims):

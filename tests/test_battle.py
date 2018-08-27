@@ -213,7 +213,58 @@ def test_get_critter_spd_order(randomMock):
     battleInfo = battle.BattleInfo('fighter', 'ai', 
                                [None, crit1Mock, crit2Mock, crit3Mock])
     assert battleInfo.get_critter_spd_order() == \
-        [crit3Mock, crit2Mock, crit1Mock] 
+        [crit3Mock, crit2Mock, crit1Mock]
+
+def test_do_ai_switch():
+    aiMock = mock.Mock()
+    aiMock.do_switch.return_value = []
+    battleInfo = battle.BattleInfo('fighter', aiMock,
+                                   [None, None, 'crit2', 'crit3'])
+    battleInfo.do_ai_switch()
+    assert battleInfo.critters == [None, None, 'crit2', 'crit3']
+    
+    battleInfo.critters = [None, None, 'crit2', None]
+    battleInfo.do_ai_switch()
+    assert battleInfo.critters == [None, None, 'crit2', None]
+
+    aiMock.do_switch.return_value = ['crit2']    
+    battleInfo.critters = ['crit0', None, None, 'crit3']
+    battleInfo.do_ai_switch()
+    assert battleInfo.critters == ['crit0', None, 'crit2', 'crit3']
+    
+    battleInfo.critters = [None, 'crit1', None, None]
+    battleInfo.do_ai_switch()
+    assert battleInfo.critters == [None, 'crit1', 'crit2', None]
+    
+    battleInfo.critters = [None, None, None, None]
+    aiMock.do_switch.return_value = ['crit2', 'crit3']
+    battleInfo.do_ai_switch()
+    assert battleInfo.critters == [None, None, 'crit2', 'crit3']
+
+@patch.object(battle.BattleInfo, 'do_ai_switch')        
+def test_check_end_turn_switch(aiSwitchMock):
+    fighterMock = mock.Mock()
+    aiMock = mock.Mock()
+    fighterMock.critters = [mock.Mock() for _ in range(4)]
+    fighterMock.alive_critter_count.return_value = 3
+    aiMock.critters = [mock.Mock() for _ in range(4)]
+    battleCritters = [fighterMock.critters[0], fighterMock.critters[1], 
+                      aiMock.critters[0], aiMock.critters[1]]
+    battleInfo = battle.BattleInfo(fighterMock, aiMock, battleCritters)
+    assert battleInfo.check_end_turn_switch() == 0
+    aiSwitchMock.assert_called_once()
+    
+    battleInfo.critters[0] = None
+    assert battleInfo.check_end_turn_switch() == 1
+    
+    battleInfo.critters[3] = None
+    assert battleInfo.check_end_turn_switch() == 1
+    
+    battleInfo.critters[1] = None
+    assert battleInfo.check_end_turn_switch() == 2
+    
+    fighterMock.alive_critter_count.return_value = 0
+    assert battleInfo.check_end_turn_switch() == 0
 
 # =============================================================================
 # BattleHandler Tests
@@ -231,7 +282,6 @@ def test_battle_handler_init():
     aiMock = mock.Mock()
     aiMock.get_start_critters.return_value = ['crit2', 'crit3']
     handler = battle.BattleHandler(fighterMock, aiMock)
-    assert handler.fighter == fighterMock
     assert handler.aiFighter == aiMock
     assert handler.battleInfo.fighter == fighterMock
     assert handler.battleInfo.aiFighter == aiMock
@@ -242,13 +292,13 @@ def test_battle_handler_init():
     assert handler.logMsg == ''
     assert handler.logQueue.empty() == True
 
-def test_end_turn():
+def test_reset():
     handler = create_handler()
     handler.turnActions = ['action1']
     handler.turnInitialized = True
     handler.endInitialized = True
     handler.logMsg = 'message'
-    handler.end_turn()
+    handler.reset()
     assert handler.turnActions == []
     assert handler.turnInitialized == False
     assert handler.endInitialized == False

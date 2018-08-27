@@ -23,3 +23,10 @@ class Fighter(object):
             if not c.dead:
                 return True
         return False
+    
+    def alive_critter_count(self):
+        count = 0
+        for c in self.critters:
+            if not c.dead:
+                count += 1
+        return count
