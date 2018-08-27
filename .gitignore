@@ -100,5 +100,8 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# Secret midi testing
+miditester.py
+
 # mypy
 .mypy_cache/
