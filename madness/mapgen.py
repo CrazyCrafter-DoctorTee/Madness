@@ -61,7 +61,6 @@ class Mapgenerator:
         if top > self.SIZE - 1:
             top = self.SIZE - 1
         points.append((self.SIZE - 1, random.randint(bottom, top)))
-        print(points)
         #now traverse from point to point:
         self.draw4connectedLine(matrix, points, 'r')
 
@@ -125,7 +124,6 @@ class Mapgenerator:
         for x in matrix:
             for y in x:
                 keys[y] += 1
-        print(keys)
 
     def placeExit(self, matrix):
         matrix[random.randint(self.SIZE / 2, self.SIZE - 1)][random.randint(self.SIZE / 2, self.SIZE - 1)] = 'x'

@@ -162,7 +162,7 @@ class BattleInfo(object):
         elif self.critters[3] == None and len(switchCrits) > 0:
             self.critters[3] = switchCrits[0]
             
-    def check_end_turn_switch(self):
+    def fighter_end_turn_switch_count(self):
         self.do_ai_switch()
         switchInCrits = self.fighter.alive_critter_count()
         emptySpots = self.critters[0:2].count(None)
@@ -183,7 +183,8 @@ class BattleHandler(object):
         self.turnInitialized = False
         self.endInitialized = False
         self.logMsg = ''
-        self.logQueue = queue.Queue()        
+        self.logQueue = queue.Queue()
+        self.endTurnSwitchCount = 0
 
     def valid_move(self, critPos, move):
         moves = self.battleInfo.get_critter_moves(critPos)
@@ -252,7 +253,7 @@ class BattleHandler(object):
         while status == None and not self.critterQueue.empty():
             self.nextCritter = self.critterQueue.get(block=False)
             status = self.nextCritter.update_status()
-        if status == None:
+        if status == []:
             self.logMsg = ''
         else:
             self.logMsg = status[-1]
@@ -260,7 +261,7 @@ class BattleHandler(object):
 
     def end_turn(self):
         self.reset()
-        self.battleInfo.check_end_turn_switches()
+        self.endTurnSwitchCount = self.battleInfo.fighter_end_turn_switch_count()
     
     def initialize_turn(self):
         self.actionQueue = queue.Queue()

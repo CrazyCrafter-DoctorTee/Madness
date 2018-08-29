@@ -3,21 +3,20 @@ import copy
 class GameMap(object):
     def __init__(self, tileDims=(32, 32)):
         self.tileDims = tileDims
-        self.DIM = 80
-        self.generator = mapgen.Mapgenerator(self.DIM)
-        self.maxDims = (self.DIM - 1, self.DIM - 1)
+        self.TILENUM = 80
+        self.generator = mapgen.Mapgenerator(self.TILENUM)
+        self.maxDims = ((self.TILENUM - 1) * 32, (self.TILENUM - 1) * 32 )
         self.generate_template()
 
     def generate_template(self):
         lines = []
         self.tiles = copy.deepcopy(self.generator.generate_map())
         inverseTiles = []
-        for i in range(self.DIM):
-            inverseTiles.append([None]*self.DIM)
-        for i in range(self.DIM):
-            for j in range(self.DIM):
+        for i in range(self.TILENUM):
+            inverseTiles.append([None]*self.TILENUM)
+        for i in range(self.TILENUM):
+            for j in range(self.TILENUM):
                 inverseTiles[i][j]=self.tiles[j][i]
-
 
     def get_tile_dims(self, startX, startY, screenDims): # TODO: rename to get_tile_print_range
         x1, y1 = startX//self.tileDims[0], startY//self.tileDims[1]
