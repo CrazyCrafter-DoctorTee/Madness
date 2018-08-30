@@ -43,11 +43,18 @@ class BattleInfo(object):
     def critter_leave(self, critPos):
         self.critters[critPos] = None
 
+    def eligible_critter(self, crit):
+        if crit in self.critters:
+            return False
+        elif crit.dead:
+            return False
+        else:
+            return True
+
     def critter_switch_options(self):
         options = []
         for c in self.fighter.critters:
-            if (self.critters[0] is not c
-                and self.critters[1] is not c):
+            if (self.eligible_critter(c)):
                 options.append(c)
         return options
 
@@ -124,10 +131,15 @@ class BattleInfo(object):
             attacker = self.critters[action[0]]
             defendPos = self.get_defender(action[0], action[1])
             defender = self.critters[defendPos]
-            move = action[2]
-            defendResult.append('{} attacked {} with {}'.format(
-                    attacker.name, defender.name, move))
-            moveResult = attacker.attack(move)
+            if defender != None:
+                move = action[2]
+                moveName = self.critters[action[0]].get_move_by_num(move)
+                defendResult.append('{} attacked {} with {}'.format(
+                        attacker.name, defender.name, moveName))
+                moveResult = attacker.attack(move)
+            else:
+                defendResult.append('{} attacked, but there was no target'.format(
+                        attacker.name))
             if defender != None:
                 for msg in defender.defend(moveResult):
                     defendResult.append(msg)
@@ -162,11 +174,19 @@ class BattleInfo(object):
         elif self.critters[3] == None and len(switchCrits) > 0:
             self.critters[3] = switchCrits[0]
             
-    def fighter_end_turn_switch_count(self):
-        self.do_ai_switch()
-        switchInCrits = self.fighter.alive_critter_count()
-        emptySpots = self.critters[0:2].count(None)
-        return min(emptySpots, switchInCrits)
+    def do_end_turn_enterance(self):
+        return len(self.critter_switch_options()) != 0
+    
+    def perform_enter(self, fighterCritNum):
+        options = self.critter_switch_options()
+        if self.critters[0] == None:
+            if fighterCritNum < len(options):
+                self.critters[0] = options[fighterCritNum]
+        elif self.critters[1] == None:
+            if fighterCritNum < len(options):
+                self.critters[1] = options[fighterCritNum]
+        else:
+            raise Exception('Attempted to perform enter with no empty spots!')
 
 
 class BattleHandler(object):
@@ -253,15 +273,22 @@ class BattleHandler(object):
         while status == None and not self.critterQueue.empty():
             self.nextCritter = self.critterQueue.get(block=False)
             status = self.nextCritter.update_status()
-        if status == []:
+        if status == [] or status == None:
             self.logMsg = ''
         else:
             self.logMsg = status[-1]
         return self.get_battle_return_status()
+    
+    def try_enter(self, fighterCrit):
+        if self.battleInfo.do_end_turn_enterance():
+            self.battleInfo.perform_enter(fighterCrit)
+            return 0
+        else:
+            return 1
 
     def end_turn(self):
         self.reset()
-        self.endTurnSwitchCount = self.battleInfo.fighter_end_turn_switch_count()
+        self.battleInfo.do_ai_switch()
     
     def initialize_turn(self):
         self.actionQueue = queue.Queue()

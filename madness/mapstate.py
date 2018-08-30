@@ -16,7 +16,7 @@ class MapState(gamestate.GameState):
         self.tick = 0
         self.screenDims = pygame.display.get_surface().get_size()
         self.images = self.create_images(self.ioManager.get_data('images'))
-        maps = self.ioManager.get_data('maps')
+        maps = self.ioManager.get_data('maps') # TODO: can we get rid of this?
         self.currMap = gamemap.GameMap()
         self.player = player.Player(self.currMap, self.ioManager.get_data('game', 'map', 'startdims'))
         self.enemy = enemy.Enemy(self.images['character']['enemy'], self.currMap, [320, 320])

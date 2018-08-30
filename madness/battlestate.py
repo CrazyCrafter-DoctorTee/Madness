@@ -40,7 +40,8 @@ class BattleState(gamestate.GameState):
                           'target' : self.select_target,
                           'turn' : self.run_turn,
                           'end' : self.run_end,
-                          'switch' : self.try_switch}
+                          'switch' : self.try_switch,
+                          'finalSwitches' : self.final_switch}
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
                            pygame.K_3 : 3,
@@ -113,6 +114,8 @@ class BattleState(gamestate.GameState):
         elif self.step[0] == 'move':
             return ('target', self.step[1])
         elif self.step[0] == 'end':
+            return ('finalSwitches', 0)
+        elif self.step[0] == 'finalSwitches':
             if self.battle.valid_critter(0):
                 return ('move', 0)
             elif self.battle.valid_critter(1):
@@ -156,6 +159,9 @@ class BattleState(gamestate.GameState):
             self.battle.add_action(critPos, switchNum, -1)
             return 1
         return 0
+    
+    def final_switch(self, critPos, switchNum):
+        return self.battle.try_enter(switchNum)
 
     def get_button_action_type(self, position):
         x, y = position
@@ -173,7 +179,7 @@ class BattleState(gamestate.GameState):
             return self.get_move_buttons(actionCrit)
         elif phase == 'target':
             return self.get_target_buttons(actionCrit)
-        elif phase == 'switch':
+        elif phase == 'switch' or phase == 'finalSwitch':
             return self.get_switch_buttons()
         else:
             return []
@@ -183,8 +189,9 @@ class BattleState(gamestate.GameState):
         moves = self.battle.get_critter_moves(actionCrit)
         x, y = 0.05, 0.8
         for i in range(4):
-            buttons.append(button.Button(self.battleImgs['redbox'], moves[i],
-                                         (x, x+0.15, y, y+0.11), i+1))
+            if i < len(moves):
+                buttons.append(button.Button(self.battleImgs['redbox'], moves[i],
+                                             (x, x+0.15, y, y+0.11), i+1))
             x += 0.17
         buttons.append(button.Button(self.battleImgs['darkbluebox'], 'switch',
                                      (0.73, 0.93, 0.8, 0.91), 5))
