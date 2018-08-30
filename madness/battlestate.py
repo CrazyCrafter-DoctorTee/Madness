@@ -17,6 +17,7 @@ stepFuncs function error codes:
     3: player lost
     4: tie
     5: perform switch
+    6: perform enterance
 '''
 
 class BattleState(gamestate.GameState):
@@ -41,7 +42,7 @@ class BattleState(gamestate.GameState):
                           'turn' : self.run_turn,
                           'end' : self.run_end,
                           'switch' : self.try_switch,
-                          'finalSwitches' : self.final_switch}
+                          'enter' : self.try_enter}
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
                            pygame.K_3 : 3,
@@ -79,7 +80,7 @@ class BattleState(gamestate.GameState):
         critterImgs, critterFonts = self.get_critter_images()
         images.extend(critterImgs)
         fonts.extend(critterFonts)
-        fonts.append((self.battle.logMsg,(0.1, 0.9, 0.8, 0.9)))
+        fonts.append((self.battle.logMsg, (0.1, 0.9, 0.8, 0.9)))
         for i, pos in images:
             self.load_image(i, pos)
         for i, pos in fonts:
@@ -99,6 +100,10 @@ class BattleState(gamestate.GameState):
             self.battleOver = True # TODO: create end battle scene
         elif returnCode == 5:
             self.step = ('switch', self.step[1])
+            self.buttons = self.get_buttons()
+        elif returnCode == 6:
+            self.step = ('enter', -1)
+            self.buttons = self.get_buttons()
 
     def make_actions(self):
         if self.battleOver:
@@ -114,8 +119,8 @@ class BattleState(gamestate.GameState):
         elif self.step[0] == 'move':
             return ('target', self.step[1])
         elif self.step[0] == 'end':
-            return ('finalSwitches', 0)
-        elif self.step[0] == 'finalSwitches':
+            return ('enter', 0)
+        elif self.step[0] == 'enter':
             if self.battle.valid_critter(0):
                 return ('move', 0)
             elif self.battle.valid_critter(1):
@@ -160,7 +165,7 @@ class BattleState(gamestate.GameState):
             return 1
         return 0
     
-    def final_switch(self, critPos, switchNum):
+    def try_enter(self, critPos, switchNum):
         return self.battle.try_enter(switchNum)
 
     def get_button_action_type(self, position):
@@ -179,7 +184,7 @@ class BattleState(gamestate.GameState):
             return self.get_move_buttons(actionCrit)
         elif phase == 'target':
             return self.get_target_buttons(actionCrit)
-        elif phase == 'switch' or phase == 'finalSwitch':
+        elif phase == 'switch' or phase == 'enter':
             return self.get_switch_buttons()
         else:
             return []
@@ -211,10 +216,12 @@ class BattleState(gamestate.GameState):
         buttons = []
         switchCrits = self.battle.get_switch_options()
         x, y = 0.05, 0.8
-        for i in range(4):
+        i = 0
+        while i < len(switchCrits):
             buttons.append(button.Button(self.battleImgs['greenbox'], switchCrits[i].name,
                                          (x, x+0.15, y, y+0.11), i+1))
             x += 0.17
+            i += 1
         return buttons
     
     def get_critter_images(self):

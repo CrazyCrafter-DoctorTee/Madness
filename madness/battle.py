@@ -61,7 +61,10 @@ class BattleInfo(object):
     def perform_switch(self, critPos, newCrit):
         options = self.critter_switch_options()
         if newCrit < len(options):
+            msg = '{} switched with {}'.format(self.critters[critPos].name, 
+                   options[newCrit].name)
             self.critters[critPos] = options[newCrit]
+            return msg
         else:
             raise Exception('{} is not a valid critter number!'.format(newCrit))
 
@@ -125,8 +128,7 @@ class BattleInfo(object):
     def execute_action(self, action):
         defendResult = []
         if action[2] == -1:
-            self.perform_switch(action[0], action[1])
-            defendResult = (0, 'Switched', '')
+            defendResult.append(self.perform_switch(action[0], action[1]))
         elif self.critters[action[0]] != None:
             attacker = self.critters[action[0]]
             defendPos = self.get_defender(action[0], action[1])

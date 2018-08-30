@@ -1,6 +1,9 @@
 import time 
 # TODO: let user exit during battle
 # TODO: fix bug where player automatically moves after battle is over
+# TODO: randomize the critters
+# TODO: prevent switch when no switch-ins
+# TODO: remove buttons after enterance
 
 from gamemanager import gamemanager
 

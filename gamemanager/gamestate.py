@@ -1,5 +1,7 @@
 import pygame
 
+# all cords arguments sould be a tuple in the form (x1, x2, y1, y2)
+
 class GameState(object):
     
     def load_image(self, image, cords):
