@@ -61,41 +61,57 @@ def test_critter_leave():
                                    ['crit0', 'crit1', 'crit2', 'crit3'])
     battleInfo.critter_leave(2)
     assert battleInfo.critters == ['crit0', 'crit1', None, 'crit3']
-    
-def test_critter_switch_options():
+
+def test_eligible_critter():
     crit0Mock = mock.Mock()
+    crit0Mock.name = 'sameName'
+    crit0Mock.dead = False
     crit1Mock = mock.Mock()
-    crit2Mock = mock.Mock()
-    crit3Mock = mock.Mock()
-    crit4Mock = mock.Mock()
+    crit1Mock.name = 'sameName'
+    crit1Mock.dead = False
+    battleInfo = battle.BattleInfo('fighter', 'ai',
+                                   [None, crit1Mock, None, None])
+    assert battleInfo.eligible_critter(crit1Mock) == False
+    assert battleInfo.eligible_critter(crit0Mock) == True
+    crit0Mock.dead = True
+    assert battleInfo.eligible_critter(crit0Mock) == False
+  
+def test_critter_switch_options():
+    critMocks = []
+    for i in range(5):
+        critMocks.append(mock.Mock())
+        critMocks[-1].dead = False
     fighterMock = mock.Mock()
-    fighterMock.critters = [crit0Mock, crit1Mock, crit2Mock, crit3Mock, crit4Mock]
+    fighterMock.critters = [critMocks[0], critMocks[1], critMocks[2], 
+                            critMocks[3], critMocks[4]]
     battleInfo = battle.BattleInfo(fighterMock, 'ai', 
-                                   [crit2Mock, crit0Mock, 'aiCrit0', 'aiCrit1'])
-    assert battleInfo.critter_switch_options() == [crit1Mock, crit3Mock, crit4Mock]
+                                   [critMocks[2], critMocks[0], 'aiCrit0', 'aiCrit1'])
+    assert battleInfo.critter_switch_options() == [critMocks[1], critMocks[3], critMocks[4]]
     
-    fighterMock.critters = [crit0Mock, crit2Mock]
+    fighterMock.critters = [critMocks[0], critMocks[2]]
     assert battleInfo.critter_switch_options() == []
     
     fighterMock.critters = []
     assert battleInfo.critter_switch_options() == []
 
 def test_perform_switch():
-    crit0Mock = mock.Mock()
-    crit1Mock = mock.Mock()
-    crit2Mock = mock.Mock()
+    critMocks = []
+    for i in range(3):
+        critMocks.append(mock.Mock())
+        critMocks[i].dead = False
+        critMocks[i].name = 'crit{}'.format(i)
     fighterMock = mock.Mock()
-    fighterMock.critters = [crit0Mock, crit1Mock, crit2Mock]
+    fighterMock.critters = [critMocks[0], critMocks[1], critMocks[2]]
     battleInfo = battle.BattleInfo(fighterMock, 'ai',
-                                   [crit0Mock, None, 'aicrit0', None])
+                                   [critMocks[0], None, 'aicrit0', None])
     battleInfo.perform_switch(0, 1)
-    assert battleInfo.critters == [crit2Mock, None, 'aicrit0', None]
-    
-    battleInfo.perform_switch(1, 0)
-    assert battleInfo.critters == [crit2Mock, crit0Mock, 'aicrit0', None]
+    assert battleInfo.critters == [critMocks[2], None, 'aicrit0', None]
     
     with pytest.raises(Exception):
-        assert battleInfo.perform_switch(0, 1)
+        battleInfo.perform_switch(1, 0)
+    
+    with pytest.raises(Exception):
+        assert battleInfo.perform_switch(0, 2)
         
 def test_valid_critter_info():
     battleInfo = battle.BattleInfo('fighter', 'ai',
@@ -107,14 +123,14 @@ def test_valid_critter_info():
     assert battleInfo.valid_critter(4) == False # out of bounds
     
 def test_vaild_switch_info():
-    crit0Mock = mock.Mock()
-    crit1Mock = mock.Mock()
-    crit2Mock = mock.Mock()
-    crit3Mock = mock.Mock()
+    critMocks = []
+    for i in range(4):
+        critMocks.append(mock.Mock())
+        critMocks[-1].dead = False
     fighterMock = mock.Mock()
-    fighterMock.critters = [crit0Mock, crit1Mock, crit2Mock, crit3Mock]
+    fighterMock.critters = critMocks
     battleInfo = battle.BattleInfo(fighterMock, 'ai',
-                                   [crit1Mock, crit3Mock, None, 'aicrit0'])
+                                   [critMocks[1], critMocks[3], None, 'aicrit0'])
     assert battleInfo.valid_switch(0, 0) == True
     assert battleInfo.valid_switch(1, 1) == True
     assert battleInfo.valid_switch(0, 2) == False
@@ -165,24 +181,24 @@ def test_get_defender():
     assert battleInfo.get_defender(2, 3) == 3
 
 def test_execute_action():
-    crit0Mock = mock.Mock()
-    crit1Mock = mock.Mock()
-    crit2Mock = mock.Mock()
-    critSwitchMock = mock.Mock()
+    critMocks = []
+    for i in range(4):
+        critMocks.append(mock.Mock())
+        critMocks[-1].dead = False
     fighterMock = mock.Mock()
-    fighterMock.critters = [crit0Mock, crit1Mock, critSwitchMock]
+    fighterMock.critters = [critMocks[0], critMocks[1], critMocks[3]]
     battleInfo = battle.BattleInfo(fighterMock, 'ai', 
-                                   [crit0Mock, critSwitchMock, crit2Mock, None])
-    assert battleInfo.execute_action((1, 0, -1)) == (0, 'Switched', '')
-    assert battleInfo.critters == [crit0Mock, crit1Mock, crit2Mock, None]
+                                   [critMocks[0], critMocks[3], critMocks[2], None])
+    battleInfo.execute_action((1, 0, -1))
+    assert battleInfo.critters == [critMocks[0], critMocks[1], critMocks[2], None]
     
-    crit0Mock.attack.return_value = 'attack info'
-    crit2Mock.defend.return_value = ['info0', 'info1']
-    crit2Mock.dead = True
+    critMocks[0].attack.return_value = 'attack info'
+    critMocks[2].defend.return_value = ['info0', 'info1']
+    critMocks[2].dead = True
     assert len(battleInfo.execute_action((0, 3, 'move'))) == 3
-    crit0Mock.attack.assert_called_with('move')
-    crit2Mock.defend.assert_called_with('attack info')
-    assert battleInfo.critters == [crit0Mock, crit1Mock, None, None]
+    critMocks[0].attack.assert_called_with('move')
+    critMocks[2].defend.assert_called_with('attack info')
+    assert battleInfo.critters == [critMocks[0], critMocks[1], None, None]
     
 @patch('random.uniform')
 def test_get_ordered_turns(randomMock):
@@ -215,56 +231,67 @@ def test_get_critter_spd_order(randomMock):
     assert battleInfo.get_critter_spd_order() == \
         [crit3Mock, crit2Mock, crit1Mock]
 
-def test_do_ai_switch():
+def test_do_ai_enter():
     aiMock = mock.Mock()
     aiMock.do_switch.return_value = []
     battleInfo = battle.BattleInfo('fighter', aiMock,
                                    [None, None, 'crit2', 'crit3'])
-    battleInfo.do_ai_switch()
+    battleInfo.do_ai_enter()
     assert battleInfo.critters == [None, None, 'crit2', 'crit3']
     
     battleInfo.critters = [None, None, 'crit2', None]
-    battleInfo.do_ai_switch()
+    battleInfo.do_ai_enter()
     assert battleInfo.critters == [None, None, 'crit2', None]
 
     aiMock.do_switch.return_value = ['crit2']    
     battleInfo.critters = ['crit0', None, None, 'crit3']
-    battleInfo.do_ai_switch()
+    battleInfo.do_ai_enter()
     assert battleInfo.critters == ['crit0', None, 'crit2', 'crit3']
     
     battleInfo.critters = [None, 'crit1', None, None]
-    battleInfo.do_ai_switch()
+    battleInfo.do_ai_enter()
     assert battleInfo.critters == [None, 'crit1', 'crit2', None]
     
     battleInfo.critters = [None, None, None, None]
     aiMock.do_switch.return_value = ['crit2', 'crit3']
-    battleInfo.do_ai_switch()
+    battleInfo.do_ai_enter()
     assert battleInfo.critters == [None, None, 'crit2', 'crit3']
 
-@patch.object(battle.BattleInfo, 'do_ai_switch')        
-def test_check_end_turn_switch(aiSwitchMock):
+def test_enter_is_possible():
+    crit0Mock = mock.Mock()
+    crit0Mock.dead = False
+    crit1Mock = mock.Mock()
+    crit1Mock.dead = False
     fighterMock = mock.Mock()
-    aiMock = mock.Mock()
-    fighterMock.critters = [mock.Mock() for _ in range(4)]
-    fighterMock.alive_critter_count.return_value = 3
-    aiMock.critters = [mock.Mock() for _ in range(4)]
-    battleCritters = [fighterMock.critters[0], fighterMock.critters[1], 
-                      aiMock.critters[0], aiMock.critters[1]]
-    battleInfo = battle.BattleInfo(fighterMock, aiMock, battleCritters)
-    assert battleInfo.check_end_turn_switch() == 0
-    aiSwitchMock.assert_called_once()
+    fighterMock.critters = [crit0Mock]
+    battleInfo = battle.BattleInfo(fighterMock, 'ai',
+                                   [crit0Mock, None, None, None])
+    assert battleInfo.enter_is_possible() == False
+    fighterMock.critters.append(crit1Mock)
+    assert battleInfo.enter_is_possible() == True
+    battleInfo.critters[1] = crit1Mock
+    assert battleInfo.enter_is_possible() == False
     
-    battleInfo.critters[0] = None
-    assert battleInfo.check_end_turn_switch() == 1
+def test_perform_enter():
+    critMocks = []
+    for i in range(4):
+        critMocks.append(mock.Mock())
+        critMocks[i].dead = False
+    fighterMock = mock.Mock()
+    fighterMock.critters = critMocks
+    battleInfo = battle.BattleInfo(fighterMock, 'ai',
+                                   [None, None, 'ai0', 'ai1'])
+    battleInfo.perform_enter(0)
+    assert battleInfo.critters == [critMocks[0], None, 'ai0', 'ai1']
     
-    battleInfo.critters[3] = None
-    assert battleInfo.check_end_turn_switch() == 1
+    battleInfo.perform_enter(4)
+    assert battleInfo.critters == [critMocks[0], None, 'ai0', 'ai1']
     
-    battleInfo.critters[1] = None
-    assert battleInfo.check_end_turn_switch() == 2
+    battleInfo.perform_enter(2)
+    assert battleInfo.critters == [critMocks[0], critMocks[3], 'ai0', 'ai1']
     
-    fighterMock.alive_critter_count.return_value = 0
-    assert battleInfo.check_end_turn_switch() == 0
+    with pytest.raises(Exception):
+        battleInfo.perform_enter(1)
 
 # =============================================================================
 # BattleHandler Tests
@@ -433,6 +460,27 @@ def test_end_action(returnMock, initEndMock):
     handler.critterQueue.empty.return_value = True
     assert handler.end_action() == 'battle status'
     assert handler.logMsg == ''
+
+@patch.object(battle.BattleInfo, 'enter_is_possible')
+@patch.object(battle.BattleInfo, 'perform_enter')
+def test_try_enter(performMock, posMock):
+    handler = create_handler()
+    posMock.return_value = False
+    assert handler.try_enter(5) == 1
+    performMock.assert_not_called()
+    
+    posMock.return_value = True
+    assert handler.try_enter(5) == 0
+    performMock.assert_called_with(5)
+
+@patch.object(battle.BattleInfo, 'do_ai_enter')
+@patch.object(battle.BattleHandler, 'reset')   
+def test_end_turn(resetMock, aiMock):
+    handler = create_handler()
+    resetMock.reset_mock()
+    handler.end_turn()
+    resetMock.assert_called_once()
+    aiMock.assert_called_once()
     
 def test_initialize_turn():
     handler = create_handler()

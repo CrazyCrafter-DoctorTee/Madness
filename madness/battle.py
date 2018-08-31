@@ -44,7 +44,7 @@ class BattleInfo(object):
         self.critters[critPos] = None
 
     def eligible_critter(self, crit):
-        if crit in self.critters:
+        if crit in self.critters: # if critter is already in battle
             return False
         elif crit.dead:
             return False
@@ -54,19 +54,21 @@ class BattleInfo(object):
     def critter_switch_options(self):
         options = []
         for c in self.fighter.critters:
-            if (self.eligible_critter(c)):
+            if self.eligible_critter(c):
                 options.append(c)
         return options
 
+    # does switch in, and switch out, to do just switch in use perfrom_enter
     def perform_switch(self, critPos, newCrit):
         options = self.critter_switch_options()
-        if newCrit < len(options):
+        
+        if newCrit < len(options) and self.critters[critPos] != None:
             msg = '{} switched with {}'.format(self.critters[critPos].name, 
                    options[newCrit].name)
             self.critters[critPos] = options[newCrit]
             return msg
         else:
-            raise Exception('{} is not a valid critter number!'.format(newCrit))
+            raise Exception('{} to {} is not a valid switch!'.format(critPos, newCrit))
 
     def valid_critter(self, critPos):
         if critPos < 4:
@@ -167,7 +169,7 @@ class BattleInfo(object):
                        key=lambda x: x.get_speed()+random.uniform(0,1),
                        reverse=True)
         
-    def do_ai_switch(self):
+    def do_ai_enter(self):
         switchCrits = self.aiFighter.do_switch(self.critters)
         if self.critters[2] == None and len(switchCrits) > 0:
             self.critters[2] = switchCrits[0]
@@ -176,9 +178,12 @@ class BattleInfo(object):
         elif self.critters[3] == None and len(switchCrits) > 0:
             self.critters[3] = switchCrits[0]
             
-    def do_end_turn_enterance(self):
-        return len(self.critter_switch_options()) != 0
+    # if there is an empty space, and fighter has a usable critter
+    def enter_is_possible(self):
+        return (len(self.critter_switch_options()) != 0
+                and (self.critters[0] == None or self.critters[1] == None))
     
+    # intended behavior is for nothing to happen if fighterCritNum is too invalid
     def perform_enter(self, fighterCritNum):
         options = self.critter_switch_options()
         if self.critters[0] == None:
@@ -282,7 +287,7 @@ class BattleHandler(object):
         return self.get_battle_return_status()
     
     def try_enter(self, fighterCrit):
-        if self.battleInfo.do_end_turn_enterance():
+        if self.battleInfo.enter_is_possible():
             self.battleInfo.perform_enter(fighterCrit)
             return 0
         else:
@@ -290,7 +295,7 @@ class BattleHandler(object):
 
     def end_turn(self):
         self.reset()
-        self.battleInfo.do_ai_switch()
+        self.battleInfo.do_ai_enter()
     
     def initialize_turn(self):
         self.actionQueue = queue.Queue()

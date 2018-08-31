@@ -9,7 +9,7 @@ class Critter:
         self.statusnames = {'slp':'asleep', 'par':'paralyzed', 'brn':'burned','psn':'poisoned',
                             'con':'confused','frz':'frozen','recha':'recharging','atkup':'stronger',
                             'atkdn':'weaker','spdup':'faster','spddn':'slower','defup':'better at defending',
-                            'defdn':'worse at defending','atkup':'more powerful','atkdn':'less powerful', 'fli':'too shook to move'}
+                            'defdn':'worse at defending', 'fli':'too shook to move'}
         self.ioman = ioman
         self.name = name
         statsin = self.ioman.get_data('critters', name, 'stats')
