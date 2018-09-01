@@ -4,9 +4,8 @@ import random
 class Player(object):
     def __init__(self, gameMap, startDims=[0,0]):
         self.map = gameMap
-        ## TODO: find why this needs to be a copy for random encounters to work
         self.position = list(startDims)
-        self.goalDims = startDims # where the player is headed, can you come up with a better name?
+        self.goalDims = list(startDims) # where the player is headed, can you come up with a better name?
         self.currMove = None
         self.lastMove = 0
 
@@ -18,25 +17,28 @@ class Player(object):
             self.currMove = None
 
     def move(self):
+        returnState = 'map'
         if self.currMove and self.goalDims[0] == self.position[0] and self.goalDims[1] == self.position[1]:
             self.get_movement()
+        if self.position != self.goalDims:
+            # 4% chance per movement of random encounter
+            if random.randrange(0, 25) == 0:
+                returnState = 'battle'
+            
         if self.position[0] < self.goalDims[0]:
             self.position[0] += self.goalDims[0]-self.position[0]
-            if random.randint(0,19) == 0:
-                return 'battle'
         elif self.position[0] > self.goalDims[0]:
             self.position[0] += self.goalDims[0]-self.position[0]
-            if random.randint(0,19) == 0:
-                return 'battle'
         elif self.position[1] < self.goalDims[1]:
             self.position[1] += self.goalDims[1]-self.position[1]
-            if random.randint(0,19) == 0:
-                return 'battle'
         elif self.position[1] > self.goalDims[1]:
             self.position[1] += self.goalDims[1]-self.position[1]
-            if random.randint(0,19) == 0:
-                return 'battle'
-        return 'map'
+  
+        if returnState != 'map':
+            # set current move to None, so player doesn't move when state becomes map again
+            self.currMove = None
+            
+        return returnState
 
     def get_movement(self):
         if self.currMove == pygame.K_LEFT:

@@ -2,10 +2,13 @@ from madness import critter
 
 class Fighter(object):
 
-    def __init__(self, iomanager):
+    def __init__(self, iomanager, critters=[]):
         self.iomanager = iomanager
-        self.critters = [critter.Critter('gato', iomanager, 5), critter.Critter('doge', iomanager, 5),
-                         critter.Critter('snek', iomanager, 5)]
+        if critters == []:
+            self.critters = [critter.Critter('gato', iomanager, 5), critter.Critter('doge', iomanager, 5),
+                             critter.Critter('snek', iomanager, 5)]
+        else:
+            self.critters = critters
         
     def get_start_critters(self):
         critters = []

@@ -16,10 +16,9 @@ class MapState(gamestate.GameState):
         self.tick = 0
         self.screenDims = pygame.display.get_surface().get_size()
         self.images = self.create_images(self.ioManager.get_data('images'))
-        maps = self.ioManager.get_data('maps') # TODO: can we get rid of this?
         self.currMap = gamemap.GameMap()
         self.player = player.Player(self.currMap, self.ioManager.get_data('game', 'map', 'startdims'))
-        self.enemy = enemy.Enemy(self.images['character']['enemy'], self.currMap, [320, 320])
+        # self.enemy = enemy.Enemy(self.images['character']['enemy'], self.currMap, [320, 320])
         self.camera = camera.Camera(self.screenDims, self.currMap.maxDims)
 
     def process_input(self):
@@ -59,6 +58,6 @@ class MapState(gamestate.GameState):
         self.camera.generate_offset(playerCords)
         tiles, startCords, tileSize = self.currMap.get_drawing_info(self.screenDims, self.camera.topLeft)
         self.draw_map(tiles, startCords, tileSize)
-        self.load_image(self.images['character']['enemy'], self.camera.get_position_in_window(self.enemy.cords))
+        # self.load_image(self.images['character']['enemy'], self.camera.get_position_in_window(self.enemy.cords))
         self.load_image(self.images['character']['player'], self.camera.get_position_in_window(self.player.position))
         pygame.display.flip()

@@ -22,6 +22,10 @@ def create_fighter(className):
 def test_init(critMock): 
     fight = fighter.Fighter('ioManager')
     assert fight.iomanager == 'ioManager'
+    assert len(fight.critters) == 3
+    
+    fight1 = fighter.Fighter('ioManager', ['crit0', 'crit1', 'crit2', 'crit3'])
+    assert fight1.critters == ['crit0', 'crit1', 'crit2', 'crit3']
 
 @pytest.mark.parametrize('className', ['fighter', 'ai']) 
 def test_get_start_critters(className):

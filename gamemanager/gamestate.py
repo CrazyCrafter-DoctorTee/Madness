@@ -31,9 +31,11 @@ class GameState(object):
         wordSurface = wordFont.render(words, 1, (255,255,255))
         self.screen.blit(wordSurface, (x1, y1))
 
-    def process_input(self): # must return new gamestate
+    def process_input(self):
         raise NotImplementedError
-        
+    
+    # This function should return the game state of that should be used next
+    # To quit the game, return None    
     def make_actions(self):
         raise NotImplementedError
 

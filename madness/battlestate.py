@@ -28,12 +28,12 @@ class BattleState(gamestate.GameState):
         self.battleOver = False
         self.ioManager = ioManager
         self.battleImgs = ioManager.get_data('battles', 'images')
-        self.battleImgs[None] = self.battleImgs['done']
         self.battleImgs = self.create_images(self.battleImgs)
         self.critterImgs = self.create_images(ioManager.get_data('critters', 'images'))
         aiFighter = aifighter.AIFighter(self.generate_ai_critters())
         self.battle = battle.BattleHandler(fighter, aiFighter)
         self.buttons = []
+        self.quit = False
         self.print_colors()
         self.step = ('move', 0)
         self.buttons = self.get_buttons()
@@ -43,6 +43,7 @@ class BattleState(gamestate.GameState):
                           'end' : self.run_end,
                           'switch' : self.try_switch,
                           'enter' : self.try_enter}
+        # TODO: make keyMapping global
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
                            pygame.K_3 : 3,
@@ -64,7 +65,7 @@ class BattleState(gamestate.GameState):
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return None
+                self.quit = True
             if event.type == pygame.KEYDOWN:
                 if event.key in self.keyMapping:
                     self.process_key_action(self.keyMapping[event.key]-1)
@@ -73,7 +74,6 @@ class BattleState(gamestate.GameState):
                 actionNum = self.get_button_action_type(mousePos)
                 if actionNum != None:
                     self.process_key_action(actionNum)
-        return 'battle'
 
     def draw(self):
         images, fonts = [[self.battleImgs['default'], (0, 1, 0, 1)]], []
@@ -106,7 +106,9 @@ class BattleState(gamestate.GameState):
             self.buttons = self.get_buttons()
 
     def make_actions(self):
-        if self.battleOver:
+        if self.quit:
+            return None
+        elif self.battleOver:
             return 'map'
         return 'battle'
 
@@ -134,8 +136,9 @@ class BattleState(gamestate.GameState):
 
 
     def generate_ai_critters(self):
-        return [critter.Critter('doge', self.ioManager, 5),
-                critter.Critter('snek', self.ioManager, 5)]
+        critNames = list(self.critterImgs.keys())
+        return [critter.Critter(random.choice(critNames), self.ioManager, 5),
+                critter.Critter(random.choice(critNames), self.ioManager, 5)]
 
     def select_move(self, critPos, moveNum):
         if moveNum == 4:
