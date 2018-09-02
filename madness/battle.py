@@ -238,6 +238,10 @@ class BattleHandler(object):
             self.turnActions.append((critPos, target, move))
         else:
             raise Exception('Invalid action added!')
+            
+    def remove_action(self):
+        if self.turnActions != []:
+            self.turnActions.pop()
 
     def get_battle_return_status(self):
         winner = self.battleInfo.determine_winner()
@@ -289,7 +293,10 @@ class BattleHandler(object):
     def try_enter(self, fighterCrit):
         if self.battleInfo.enter_is_possible():
             self.battleInfo.perform_enter(fighterCrit)
-            return 0
+            if self.battleInfo.enter_is_possible():
+                return 0
+            else:
+                return 1
         else:
             return 1
 
@@ -298,6 +305,7 @@ class BattleHandler(object):
         self.battleInfo.do_ai_enter()
     
     def initialize_turn(self):
+        print(self.turnActions)
         self.actionQueue = queue.Queue()
         self.nextAction = None
         self.turnActions.extend(self.aiFighter.get_actions(self.battleInfo.critters))

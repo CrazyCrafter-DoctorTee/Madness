@@ -1,9 +1,10 @@
 import time 
-# TODO: randomize the critters
 # TODO: prevent switch when no switch-ins
-# TODO: remove buttons after enterance
-# TODO: figure why battle sometimes infinately loop1
-# TODO: battle crash with only one critter
+# TODO: figure why battle sometimes infinately loops
+# TODO: battle crashes with only one critter
+# TODO: make sure the map that gets generated is valid
+# TODO: make sure turns work when there is no critter in slot 0
+# TODO: make game end when player loses
 
 from gamemanager import gamemanager
 

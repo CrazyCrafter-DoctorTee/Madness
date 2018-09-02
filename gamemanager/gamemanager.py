@@ -6,6 +6,7 @@ from madness import fighter
 from madness import battlestate
 
 class GameManager(object):
+    
     def __init__(self):
         self.active = True
         pygame.init()

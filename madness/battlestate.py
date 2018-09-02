@@ -10,7 +10,7 @@ from gamemanager import button
 from gamemanager import gamestate
 
 '''
-stepFuncs function error codes:
+stepFuncs function codes:
     0: don't change step
     1: go to next step
     2: player won
@@ -18,6 +18,7 @@ stepFuncs function error codes:
     4: tie
     5: perform switch
     6: perform enterance
+    7: go back to previous move
 '''
 
 class BattleState(gamestate.GameState):
@@ -48,7 +49,8 @@ class BattleState(gamestate.GameState):
                            pygame.K_2 : 2,
                            pygame.K_3 : 3,
                            pygame.K_4 : 4,
-                           pygame.K_5 : 5}
+                           pygame.K_5 : 5,
+                           pygame.K_6 : 6}
 
     def print_colors(self):
         stime = time.time()
@@ -72,7 +74,8 @@ class BattleState(gamestate.GameState):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mousePos = pygame.mouse.get_pos()
                 actionNum = self.get_button_action_type(mousePos)
-                if actionNum != None:
+                # if step[1] is -1, player isn't selecting, they are just going through text
+                if actionNum != None or self.step[1] == -1:
                     self.process_key_action(actionNum)
 
     def draw(self):
@@ -91,6 +94,8 @@ class BattleState(gamestate.GameState):
             self.print_words(fontInfo[0], fontInfo[1])
         pygame.display.flip()
 
+    # step[0]: the current substate
+    # step[1]: the critter to keep track of, or -1 if no critter
     def process_key_action(self, actionNum):
         returnCode = self.stepFuncs[self.step[0]](self.step[1], actionNum)
         if returnCode == 1:
@@ -104,6 +109,8 @@ class BattleState(gamestate.GameState):
         elif returnCode == 6:
             self.step = ('enter', -1)
             self.buttons = self.get_buttons()
+        elif returnCode == 7:
+            self.go_to_previous_step()
 
     def make_actions(self):
         if self.quit:
@@ -112,12 +119,22 @@ class BattleState(gamestate.GameState):
             return 'map'
         return 'battle'
 
+    # Only works for steps the user can undo (step for selecting actions)
+    def go_to_previous_step(self):
+        if self.step == ('move', 1):
+            self.step = ('move', 0)
+            self.battle.remove_action()
+        elif self.step[0] == 'target' or self.step[0] == 'switch':
+            self.step = ('move', self.step[1])
+            self.battle.remove_action()
+        self.buttons = self.get_buttons()
+
     def determine_next_step(self):
         if self.step[0] == 'target' or self.step[0] == 'switch':
             if self.step[1] == 0 and self.battle.valid_critter(1):
                 return ('move', 1)
             else:
-                return ('turn', 2)
+                return ('turn', -1)
         elif self.step[0] == 'move':
             return ('target', self.step[1])
         elif self.step[0] == 'end':
@@ -130,7 +147,7 @@ class BattleState(gamestate.GameState):
             else:
                 raise Exception('Turn ended with no usable critters')
         elif self.step[0] == 'turn':
-            return ('end', 2)
+            return ('end', -1)
         else:
             raise Exception('Could not determine next step: {}'.format(self.step))
 
@@ -141,19 +158,26 @@ class BattleState(gamestate.GameState):
                 critter.Critter(random.choice(critNames), self.ioManager, 5)]
 
     def select_move(self, critPos, moveNum):
-        if moveNum == 4:
+        if moveNum == 5: # if back
+            self.battle.remove_action()
+            return 7
+        elif moveNum == 4: # if switch
             return 5
-        if self.battle.valid_move(critPos, moveNum):
+        elif self.battle.valid_move(critPos, moveNum):
             self.currentMoveNum = moveNum
             return 1
-        return 0
+        else:
+            return 0
 
     def select_target(self, critterPos, targetPos):
-        if self.battle.valid_target(critterPos, targetPos):
+        if targetPos == 5:
+            return 7
+        elif self.battle.valid_target(critterPos, targetPos):
             self.battle.add_action(critterPos, targetPos, self.currentMoveNum)
             self.currentMove = None
             return 1
-        return 0
+        else:
+            return 0
 
     # params there so it can be called even with no
     def run_turn(self, critterPos=None, targetPos=None):
@@ -166,7 +190,10 @@ class BattleState(gamestate.GameState):
         if self.battle.valid_switch(critPos, switchNum):
             self.battle.add_action(critPos, switchNum, -1)
             return 1
-        return 0
+        elif switchNum == 5:
+            return 7
+        else:
+            return 0
     
     def try_enter(self, critPos, switchNum):
         return self.battle.try_enter(switchNum)
@@ -192,17 +219,21 @@ class BattleState(gamestate.GameState):
         else:
             return []
 
+    def get_back_button(self):
+        return button.Button(self.battleImgs['redbox'], 'back', (0.8, 0.9, 0.82, 0.9), 5)
+
     def get_move_buttons(self, actionCrit):
         buttons = []
         moves = self.battle.get_critter_moves(actionCrit)
-        x, y = 0.05, 0.8
+        x, y = 0.05, 0.82
         for i in range(4):
             if i < len(moves):
-                buttons.append(button.Button(self.battleImgs['redbox'], moves[i],
-                                             (x, x+0.15, y, y+0.11), i+1))
-            x += 0.17
+                buttons.append(button.Button(self.battleImgs['graybox'], moves[i],
+                                             (x, x+0.13, y, y+0.08), i))
+            x += 0.15
         buttons.append(button.Button(self.battleImgs['darkbluebox'], 'switch',
-                                     (0.73, 0.93, 0.8, 0.91), 5))
+                                     (0.65, 0.78, 0.82, 0.90), 4))
+        buttons.append(self.get_back_button())
         return buttons
 
     def get_target_buttons(self, actionCrit):
@@ -212,19 +243,21 @@ class BattleState(gamestate.GameState):
         names = self.battle.get_targets(actionCrit)
         for i in range(4):
             buttons.append(button.Button(self.battleImgs['targetbox'],
-                        names[i], boxPos[i], i+1))
+                        names[i], boxPos[i], i))
+        buttons.append(self.get_back_button())
         return buttons
 
     def get_switch_buttons(self):
         buttons = []
         switchCrits = self.battle.get_switch_options()
-        x, y = 0.05, 0.8
+        x, y = 0.05, 0.82
         i = 0
         while i < len(switchCrits):
             buttons.append(button.Button(self.battleImgs['greenbox'], switchCrits[i].name,
-                                         (x, x+0.15, y, y+0.11), i+1))
-            x += 0.17
+                                         (x, x+0.13, y, y+0.08), i))
+            x += 0.15
             i += 1
+        buttons.append(self.get_back_button())
         return buttons
     
     def get_critter_images(self):
