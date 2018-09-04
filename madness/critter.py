@@ -59,7 +59,7 @@ class Critter:
         extrainfo = []
         dmgtaken = 0
         if(attack[0] > 0):
-            dmgtaken = int(attack[0] / self.defense + 1)
+            dmgtaken = int(0.5 * attack[0] / self.defense) + 1
             self.currenthp -= dmgtaken
             if self.currenthp < 1:
                 self.currenthp = 0
