@@ -5,8 +5,8 @@ class Fighter(object):
     def __init__(self, iomanager, critters=[]):
         self.iomanager = iomanager
         if critters == []:
-            self.critters = [critter.Critter('gato', iomanager, 5), critter.Critter('doge', iomanager, 5),
-                             critter.Critter('snek', iomanager, 5)]
+            self.critters = [critter.Critter('gato', iomanager, 50), critter.Critter('doge', iomanager, 50),
+                             critter.Critter('snek', iomanager, 50)]
         else:
             self.critters = critters
         

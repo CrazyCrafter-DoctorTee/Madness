@@ -305,7 +305,6 @@ class BattleHandler(object):
         self.battleInfo.do_ai_enter()
     
     def initialize_turn(self):
-        print(self.turnActions)
         self.actionQueue = queue.Queue()
         self.nextAction = None
         self.turnActions.extend(self.aiFighter.get_actions(self.battleInfo.critters))
@@ -319,6 +318,9 @@ class BattleHandler(object):
         for c in self.battleInfo.get_critter_spd_order():
             self.critterQueue.put(c)
         self.endInitialized = True
+
+    def enter_is_possible(self):
+        return self.battleInfo.enter_is_possible()
 
     def get_critter_moves(self, critPos):
         return self.battleInfo.get_critter_moves(critPos)

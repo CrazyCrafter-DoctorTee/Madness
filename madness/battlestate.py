@@ -34,6 +34,7 @@ class BattleState(gamestate.GameState):
         aiFighter = aifighter.AIFighter(self.generate_ai_critters())
         self.battle = battle.BattleHandler(fighter, aiFighter)
         self.buttons = []
+        self.displayOutcome = False
         self.quit = False
         self.print_colors()
         self.step = ('move', 0)
@@ -43,7 +44,9 @@ class BattleState(gamestate.GameState):
                           'turn' : self.run_turn,
                           'end' : self.run_end,
                           'switch' : self.try_switch,
-                          'enter' : self.try_enter}
+                          'enter' : self.try_enter,
+                          'win' : self.back_to_map,
+                          'lose' : self.quit_game}
         # TODO: make keyMapping global
         self.keyMapping = {pygame.K_1 : 1,
                            pygame.K_2 : 2,
@@ -77,13 +80,27 @@ class BattleState(gamestate.GameState):
                 # if step[1] is -1, player isn't selecting, they are just going through text
                 if actionNum != None or self.step[1] == -1:
                     self.process_key_action(actionNum)
+        
+    def make_actions(self):
+        if self.quit:
+            return None
+        elif self.battleOver:
+            return 'map'
+        return 'battle'
 
     def draw(self):
         images, fonts = [[self.battleImgs['default'], (0, 1, 0, 1)]], []
         critterImgs, critterFonts = self.get_critter_images()
         images.extend(critterImgs)
         fonts.extend(critterFonts)
-        fonts.append((self.battle.logMsg, (0.1, 0.9, 0.8, 0.9)))
+        if self.displayOutcome:
+            if self.step[0] == 'win':
+                fonts.append(('You defeated the wild critters', (0.1, 0.9, 0.8, 0.9)))
+            else:
+                fonts.append(('You lost!', (0.1, 0.9, 0.8, 0.9)))
+        else:
+            fonts.append((self.battle.logMsg, (0.1, 0.9, 0.8, 0.9)))
+            
         for i, pos in images:
             self.load_image(i, pos)
         for i, pos in fonts:
@@ -101,8 +118,10 @@ class BattleState(gamestate.GameState):
         if returnCode == 1:
             self.step = self.determine_next_step()
             self.buttons = self.get_buttons()
-        elif 2 <= returnCode <= 4:
-            self.battleOver = True # TODO: create end battle scene
+        elif returnCode == 2:
+            self.step = ('win', -1)
+        elif returnCode == 3 or returnCode == 4:
+            self.step = ('lose', -1)
         elif returnCode == 5:
             self.step = ('switch', self.step[1])
             self.buttons = self.get_buttons()
@@ -112,14 +131,7 @@ class BattleState(gamestate.GameState):
         elif returnCode == 7:
             self.go_to_previous_step()
 
-    def make_actions(self):
-        if self.quit:
-            return None
-        elif self.battleOver:
-            return 'map'
-        return 'battle'
-
-    # Only works for steps the user can undo (step for selecting actions)
+    # Only works for steps the user can undo (steps for selecting actions)
     def go_to_previous_step(self):
         if self.step == ('move', 1):
             self.step = ('move', 0)
@@ -129,7 +141,7 @@ class BattleState(gamestate.GameState):
             self.battle.remove_action()
         self.buttons = self.get_buttons()
 
-    def determine_next_step(self):
+    def determine_next_step(self): # TODO: clean up this function
         if self.step[0] == 'target' or self.step[0] == 'switch':
             if self.step[1] == 0 and self.battle.valid_critter(1):
                 return ('move', 1)
@@ -138,7 +150,13 @@ class BattleState(gamestate.GameState):
         elif self.step[0] == 'move':
             return ('target', self.step[1])
         elif self.step[0] == 'end':
-            return ('enter', 0)
+            if self.battle.enter_is_possible():
+                return ('enter', 0)
+            else:
+                if self.battle.valid_critter(0):
+                    return ('move', 0)
+                elif self.battle.valid_critter(1):
+                    return ('move', 1)
         elif self.step[0] == 'enter':
             if self.battle.valid_critter(0):
                 return ('move', 0)
@@ -154,8 +172,8 @@ class BattleState(gamestate.GameState):
 
     def generate_ai_critters(self):
         critNames = list(self.critterImgs.keys())
-        return [critter.Critter(random.choice(critNames), self.ioManager, 5),
-                critter.Critter(random.choice(critNames), self.ioManager, 5)]
+        return [critter.Critter(random.choice(critNames), self.ioManager, 50),
+                critter.Critter(random.choice(critNames), self.ioManager, 50)]
 
     def select_move(self, critPos, moveNum):
         if moveNum == 5: # if back
@@ -274,3 +292,15 @@ class BattleState(gamestate.GameState):
                                critPos[i]))
             fonts.append((hps[i], hpPos[i]))
         return images, fonts
+    
+    def back_to_map(self, arg0=None, arg1=None):
+        if self.displayOutcome == False:
+            self.displayOutcome = True
+        else:
+            self.battleOver = True
+        
+    def quit_game(self, arg0=None, arg1=None):
+        if self.displayOutcome == False:
+            self.displayOutcome = True
+        else:
+            self.quit = True

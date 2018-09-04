@@ -1,10 +1,6 @@
 import time 
-# TODO: prevent switch when no switch-ins
-# TODO: figure why battle sometimes infinately loops
-# TODO: battle crashes with only one critter
 # TODO: make sure the map that gets generated is valid
-# TODO: make sure turns work when there is no critter in slot 0
-# TODO: make game end when player loses
+# TODO: add exit to map
 
 from gamemanager import gamemanager
 
