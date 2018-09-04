@@ -133,4 +133,5 @@ class Mapgenerator:
         self.makeRiver(matero, 8)
         self.randomPath(matero, 'p')
         self.countEntries(matero)
+        self.placeExit(matero)
         return matero

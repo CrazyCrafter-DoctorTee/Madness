@@ -29,6 +29,11 @@ class GameMap(object):
                 mapTiles[i-x1].append(self.tiles[i][j])
         return mapTiles, (offsetX, offsetY), self.tileDims
 
+    def on_exit(self, coords):
+        x = int(coords[0] // self.tileDims[0])
+        y = int(coords[1] // self.tileDims[1])
+        return self.tiles[x][y] == 'x'
+
     def impassable(self, x, y):
         if self.tiles[x][y] in ('r','b','t'):
             return True

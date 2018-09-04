@@ -21,8 +21,10 @@ class Player(object):
         if self.currMove and self.goalDims[0] == self.position[0] and self.goalDims[1] == self.position[1]:
             self.get_movement()
         if self.position != self.goalDims:
+            if self.map.on_exit(self.goalDims):
+                returnState = None
             # 4% chance per movement of random encounter
-            if random.randrange(0, 25) == 0:
+            elif random.randrange(0, 1000) == 0:
                 returnState = 'battle'
             
         if self.position[0] < self.goalDims[0]:
