@@ -1,6 +1,4 @@
 import time 
-# TODO: make sure the map that gets generated is valid
-# TODO: add exit to map
 
 from gamemanager import gamemanager
 
